@@ -95,7 +95,7 @@ public class PlayerController : MonoBehaviour
         }
 
 
-        // Player state tramsotopms
+        // Player state transitions
         switch(playerGroundStatus) {
             case PlayerGroundStatus.GROUNDED:
                 // Grounded -> Jumping
@@ -123,7 +123,11 @@ public class PlayerController : MonoBehaviour
             break;
         }
 
-        playerDirectionStatus = (moveDirection < 0)? PlayerDirectionStatus.LEFT : (moveDirection > 0)? PlayerDirectionStatus.RIGHT : PlayerDirectionStatus.IDLE;
+        // Set player direction
+        playerDirectionStatus = (playerGroundStatus == PlayerGroundStatus.LANDING)? playerDirectionStatus : // If player is landing, maintain current direction
+                                (moveDirection < 0)? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
+                                (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
+                                PlayerDirectionStatus.IDLE; // Not moving, idle
     }
 
     void FixedUpdate()
