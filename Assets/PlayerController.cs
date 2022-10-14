@@ -128,6 +128,12 @@ public class PlayerController : MonoBehaviour
                                 (moveDirection < 0)? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
                                 (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
+
+        // Activate objects
+        if (Input.GetKey(KeyCode.Space)) {
+            //Get trigger colliders overlapping, then check for types???
+        }
+
     }
 
     void FixedUpdate()
@@ -143,7 +149,7 @@ public class PlayerController : MonoBehaviour
         {
             for (int i = 0; i < colliders.Length; i++)
             {
-                if (colliders[i] != mainCollider)
+                if (colliders[i] != mainCollider && !colliders[i].isTrigger)
                 {
                     isGrounded = true;
                     break;
