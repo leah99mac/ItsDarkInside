@@ -26,7 +26,7 @@ public class Lever : MonoBehaviour
         transform.localScale = new Vector3(((state == LeverState.ON)? -1 : 1) * Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
     }
 
-    void Activate() 
+    public void Activate() 
     {
         // Activate objects
         foreach (GameObject obj in objects) 
@@ -36,5 +36,12 @@ public class Lever : MonoBehaviour
 
         // Switch states
         state = (state == LeverState.ON)? LeverState.OFF : LeverState.ON;
+    }
+
+    private void OnTriggerStay2D(Collider2D other) {
+        PlayerController pc = other.gameObject.GetComponent<PlayerController>();
+        if (pc != null && pc.activate) {
+            Activate();
+        }
     }
 }

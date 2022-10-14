@@ -284,6 +284,7 @@ GameObject:
   - component: {fileID: 355014495}
   - component: {fileID: 355014494}
   - component: {fileID: 355014493}
+  - component: {fileID: 355014496}
   m_Layer: 6
   m_Name: Lever
   m_TagString: Untagged
@@ -373,6 +374,32 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!61 &355014496
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 355014492}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 1, y: 1}
+    newSize: {x: 1, y: 1}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1}
+  m_EdgeRadius: 0
 --- !u!1 &386817847
 GameObject:
   m_ObjectHideFlags: 0
@@ -2124,6 +2151,7 @@ MonoBehaviour:
   mainCamera: {fileID: 519420031}
   playerDirectionStatus: 0
   playerGroundStatus: 0
+  activate: 0
 --- !u!70 &1375508528
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

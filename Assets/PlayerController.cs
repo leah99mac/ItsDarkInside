@@ -22,6 +22,9 @@ public class PlayerController : MonoBehaviour
     public PlayerDirectionStatus playerDirectionStatus = PlayerDirectionStatus.IDLE;
     public PlayerGroundStatus playerGroundStatus = PlayerGroundStatus.GROUNDED;
 
+    // Player activate button has been pressed
+    public bool activate = false;
+
     bool facingRight = true;
     float moveDirection = 0;
     float landingCounter = 0;
@@ -91,7 +94,7 @@ public class PlayerController : MonoBehaviour
         // Camera follow
         if (mainCamera)
         {
-            mainCamera.transform.position = new Vector3(t.position.x, cameraPos.y, cameraPos.z);
+            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
         }
 
 
@@ -129,11 +132,8 @@ public class PlayerController : MonoBehaviour
                                 (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
 
-        // Activate objects
-        if (Input.GetKey(KeyCode.Space)) {
-            //Get trigger colliders overlapping, then check for types???
-        }
-
+        // Activate key
+        activate = Input.GetKey(KeyCode.Space);
     }
 
     void FixedUpdate()
