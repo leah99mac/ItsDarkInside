@@ -133,7 +133,7 @@ public class PlayerController : MonoBehaviour
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
 
         // Activate key
-        activate = Input.GetKey(KeyCode.Space);
+        activate = Input.GetKeyDown(KeyCode.Space);
     }
 
     void FixedUpdate()
