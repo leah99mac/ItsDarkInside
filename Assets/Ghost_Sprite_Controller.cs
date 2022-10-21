@@ -34,8 +34,8 @@ public class Ghost_Sprite_Controller : MonoBehaviour
     void Update()
     {
         // Get player statuses
-        PlayerController.PlayerGroundStatus groundStatus = parentPlayerController.playerGroundStatus;
-        PlayerController.PlayerDirectionStatus dirStatus = parentPlayerController.playerDirectionStatus;
+        PlayerController.PlayerGroundStatus groundStatus = parentPlayerController.playerGroundStatus.Value;
+        PlayerController.PlayerDirectionStatus dirStatus = parentPlayerController.playerDirectionStatus.Value;
         bool moving = (dirStatus != PlayerController.PlayerDirectionStatus.IDLE);
 
         // Update time
