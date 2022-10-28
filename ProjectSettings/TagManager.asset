@@ -41,6 +41,15 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Main
+  - name: Background
     uniqueID: 1287688689
+    locked: 0
+  - name: Artistic Add-Ins
+    uniqueID: 1694179017
+    locked: 0
+  - name: Blocks
+    uniqueID: 1866613751
+    locked: 0
+  - name: Interactive
+    uniqueID: 1092249223
     locked: 0
