@@ -19,15 +19,15 @@ public class Torch : MonoBehaviour
     public Sprite rightSprite;
     public Sprite offSprite;
 
-    Light2D light;
+    Light2D l2d;
     SpriteRenderer sr;
     float litIntensity;
     float flickerTime = 0.0f;
 
     void Start() {
-        light = GetComponent<Light2D>();
+        l2d = GetComponent<Light2D>();
         sr = GetComponent<SpriteRenderer>();
-        litIntensity = light.intensity;
+        litIntensity = l2d.intensity;
     }
 
     void Update() {
@@ -36,7 +36,7 @@ public class Torch : MonoBehaviour
 
         // On or Off
         if (lit) {
-            light.intensity = litIntensity;
+            l2d.intensity = litIntensity;
 
             // Flicker
             if (flickerTime < flickerPeriod / 2f) {
@@ -46,7 +46,7 @@ public class Torch : MonoBehaviour
             }
 
         } else {
-            light.intensity = 0f;
+            l2d.intensity = 0f;
 
             sr.sprite = offSprite;
         }
