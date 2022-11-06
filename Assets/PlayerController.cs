@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
+using Unity.Netcode.Components;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CapsuleCollider2D))]
 
-public class PlayerController : MonoBehaviour
-{
+public class PlayerController : NetworkBehaviour {
 
     public enum PlayerDirectionStatus {IDLE, RIGHT, LEFT};
     public enum PlayerGroundStatus {GROUNDED, JUMPING, FALLING, LANDING};
@@ -19,8 +20,8 @@ public class PlayerController : MonoBehaviour
     public Camera mainCamera;
 
     // Player status output
-    public PlayerDirectionStatus playerDirectionStatus = PlayerDirectionStatus.IDLE;
-    public PlayerGroundStatus playerGroundStatus = PlayerGroundStatus.GROUNDED;
+    public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
     // Player activate button has been pressed
     public bool activate = false;
@@ -55,7 +56,7 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         // Movement controls
-        if ((Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) && playerGroundStatus != PlayerGroundStatus.LANDING)
+        if (IsOwner && (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
         {
             moveDirection = Input.GetKey(KeyCode.A) ? -1 : 1;
         }
@@ -84,7 +85,7 @@ public class PlayerController : MonoBehaviour
 
         // Jumping
         bool startJump = false;
-        if (Input.GetKeyDown(KeyCode.W) && isGrounded && playerGroundStatus != PlayerGroundStatus.LANDING)
+        if (IsOwner && Input.GetKeyDown(KeyCode.W) && isGrounded && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
         {
             r2d.velocity = new Vector2(r2d.velocity.x, jumpHeight);
             landingCounter = maxLandingTime;
@@ -92,45 +93,47 @@ public class PlayerController : MonoBehaviour
         }
 
         // Camera follow
-        if (mainCamera)
+        if (IsOwner && mainCamera)
         {
             mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
         }
 
 
         // Player state transitions
-        switch(playerGroundStatus) {
+        if (IsOwner) {
+        switch(playerGroundStatus.Value) {
             case PlayerGroundStatus.GROUNDED:
                 // Grounded -> Jumping
                 if (startJump)
-                    playerGroundStatus = PlayerGroundStatus.JUMPING;
+                    playerGroundStatus.Value = PlayerGroundStatus.JUMPING;
                 // Grounded -> Falling
                 else if (!isGrounded && r2d.velocity.y < -0.05)
-                    playerGroundStatus = PlayerGroundStatus.FALLING;
+                    playerGroundStatus.Value = PlayerGroundStatus.FALLING;
             break;
             case PlayerGroundStatus.JUMPING:
                 // Jumping -> Falling
                 if (!isGrounded && r2d.velocity.y < -0.05)
-                    playerGroundStatus = PlayerGroundStatus.FALLING;
+                    playerGroundStatus.Value = PlayerGroundStatus.FALLING;
             break;
             case PlayerGroundStatus.FALLING:
                 // Falling -> Landing
                 if (isGrounded)
-                    playerGroundStatus = PlayerGroundStatus.LANDING;
+                    playerGroundStatus.Value = PlayerGroundStatus.LANDING;
             break;
             case PlayerGroundStatus.LANDING:
                 // Landing -> Grounded
                 if (landingCounter <= 0)
-                    playerGroundStatus = PlayerGroundStatus.GROUNDED;
+                    playerGroundStatus.Value = PlayerGroundStatus.GROUNDED;
                 landingCounter -= Time.deltaTime;
             break;
         }
 
         // Set player direction
-        playerDirectionStatus = (playerGroundStatus == PlayerGroundStatus.LANDING)? playerDirectionStatus : // If player is landing, maintain current direction
+        playerDirectionStatus.Value = (playerGroundStatus.Value == PlayerGroundStatus.LANDING)? playerDirectionStatus.Value : // If player is landing, maintain current direction
                                 (moveDirection < 0)? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
                                 (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
+        }
 
         // Activate key
         activate = Input.GetKeyDown(KeyCode.Space);
