@@ -15,4 +15,5 @@ EditorBuildSettings:
     path: Assets/Scenes/DarknessTestingScene.unity
     guid: 3fc8acdd13e6c734bafef6554d6fdbcd
   m_configObjects:
+    com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 0831644be9d3a874582cc82494652b2f, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: d18ab148e1e51d84da6ef6b39e3725b6, type: 2}
