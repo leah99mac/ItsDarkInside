@@ -81,7 +81,9 @@ MonoBehaviour:
     m_InternalValue: 0
   playerGroundStatus:
     m_InternalValue: 0
-  activate: 0
+  lightBall: {fileID: 8867402015553256802, guid: fbf4215f4be2ae1438ccc0e3dc71b987, type: 3}
+  lightBallCooldown: 1
+  lightBallSpeed: 6
 --- !u!70 &1518233964483852193
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

@@ -23,13 +23,17 @@ public class PlayerController : NetworkBehaviour {
     public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
-    // Player activate button has been pressed
-    public bool activate = false;
+    // Light Ball
+    public GameObject lightBall;
+    public float lightBallCooldown = 1.0f;
+    public float lightBallSpeed = 3.0f;
+
 
     bool facingRight = true;
     float moveDirection = 0;
     float landingCounter = 0;
     bool isGrounded = false;
+    float timeUntilLightBall = 0f;
     Vector3 cameraPos;
     Rigidbody2D r2d;
     CapsuleCollider2D mainCollider;
@@ -135,8 +139,37 @@ public class PlayerController : NetworkBehaviour {
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
         }
 
-        // Activate key
-        activate = Input.GetKeyDown(KeyCode.Space);
+        // Shoot light ball
+        if (Input.GetKeyDown(KeyCode.Space) && timeUntilLightBall <= 0f) {
+            // Get velocity
+            Vector2 vel;
+            Vector3 spawn;
+            switch(playerDirectionStatus.Value) {
+                case PlayerDirectionStatus.LEFT:
+                    vel = Vector2.left;
+                    spawn = new Vector3(-0.6f, 0, -0.01f);
+                break;
+                case PlayerDirectionStatus.RIGHT:
+                    vel = Vector2.right;
+                    spawn = new Vector3(0.6f, 0, -0.01f);
+                break;
+                case PlayerDirectionStatus.IDLE:
+                default:
+                    vel = Vector2.up;
+                    spawn = new Vector3(0, 0.6f, -0.01f);
+                break;
+            }
+            vel *= lightBallSpeed;
+            spawn += transform.position;
+            // Create ball
+            GameObject ball = Instantiate(lightBall, spawn, Quaternion.identity);
+            ball.GetComponent<Rigidbody2D>().velocity = vel;
+
+            // Reset cooldown
+            timeUntilLightBall = lightBallCooldown;
+        } else if (timeUntilLightBall > 0f) {
+            timeUntilLightBall -= Time.deltaTime;
+        }
     }
 
     void FixedUpdate()
