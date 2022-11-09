@@ -14,8 +14,8 @@ GameObject:
   - component: {fileID: 1518233964483852193}
   - component: {fileID: 6442638558158025468}
   - component: {fileID: 5948384824345978208}
-  - component: {fileID: 5557912463041289730}
-  - component: {fileID: -8533790239210125820}
+  - component: {fileID: -9178042113500872292}
+  - component: {fileID: -6227523690836482368}
   m_Layer: 0
   m_Name: Ghost
   m_TagString: Player
@@ -171,7 +171,7 @@ MonoBehaviour:
   - {x: 0.5, y: -0.5, z: 0}
   - {x: 0.5, y: 0.5, z: 0}
   - {x: -0.5, y: 0.5, z: 0}
---- !u!114 &5557912463041289730
+--- !u!114 &-9178042113500872292
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -180,7 +180,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3572634147981541}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: df2868252ab5c4d1da357e8f11f1b524, type: 3}
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   SyncPositionX: 1
@@ -197,7 +197,7 @@ MonoBehaviour:
   ScaleThreshold: 0.01
   InLocalSpace: 0
   Interpolate: 1
---- !u!114 &-8533790239210125820
+--- !u!114 &-6227523690836482368
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

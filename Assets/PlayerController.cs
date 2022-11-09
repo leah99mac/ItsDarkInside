@@ -20,8 +20,8 @@ public class PlayerController : NetworkBehaviour {
     public Camera mainCamera;
 
     // Player status output
-    public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     // Light Ball
     public GameObject lightBall;
@@ -59,17 +59,62 @@ public class PlayerController : NetworkBehaviour {
     // Update is called once per frame
     void Update()
     {
-        // Movement controls
-        if (IsOwner && (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
-        {
-            moveDirection = Input.GetKey(KeyCode.A) ? -1 : 1;
+        // Only move player if we own it
+        if (IsOwner) {
+
+            // Get the input byte to send to the server
+            byte input = ConstructInputByte();
+            // No input, no message needed?
+            //if (input != 0) {
+                MovePlayerServerRpc(input);
+            //}
         }
-        else
+
+        
+
+        // Camera follow TODO FIX THIS
+        if (IsOwner && mainCamera)
         {
-            if (isGrounded || r2d.velocity.magnitude < 0.01f)
-            {
-                moveDirection = 0;
-            }
+            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
+        }
+
+    }
+
+    private byte ConstructInputByte() {
+        // Construct the input byte to be sent to the server (or used by the server)
+        // This byte is of the format (_ is unused):
+        // BIT      0   1   2   3   4       5   6   7
+        // KEY      W   A   S   D   Space   _   _   _
+        // When we make the switch to android, we'll have to change this
+        // Call this function in Update() only!
+
+        byte input = 0;
+        if (Input.GetKeyDown(KeyCode.W))        input |= 0b1;
+        if (Input.GetKey(KeyCode.A))            input |= 0b10;
+        if (Input.GetKeyDown(KeyCode.S))        input |= 0b100;
+        if (Input.GetKey(KeyCode.D))            input |= 0b1000;
+        if (Input.GetKeyDown(KeyCode.Space))    input |= 0b10000;
+
+        return input;
+    }
+
+    // This function will be requested by the client, but executed on the server
+    // This way, we send our input from the client to the server which can do all physics calculations
+    // Only call this on players you own!
+    [ServerRpc]
+    public void MovePlayerServerRpc(byte input)
+    {
+        // Extract input data
+        moveDirection = 0f;
+        if ((input & 0b10   )!= 0) moveDirection += -1f; // A pressed, move left
+        if ((input & 0b1000 )!= 0) moveDirection +=  1f; // D pressed, move right
+        bool tryJump = ((input & 0b1 )!= 0);
+        bool tryShootLightBall = ((input & 0b10000 )!= 0);
+
+        // Horizontal movement
+        // If landing, no movement
+        if (playerGroundStatus.Value == PlayerGroundStatus.LANDING) {
+            moveDirection = 0f;
         }
 
         // Change facing direction
@@ -89,22 +134,14 @@ public class PlayerController : NetworkBehaviour {
 
         // Jumping
         bool startJump = false;
-        if (IsOwner && Input.GetKeyDown(KeyCode.W) && isGrounded && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
+        if (tryJump && isGrounded && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
         {
             r2d.velocity = new Vector2(r2d.velocity.x, jumpHeight);
             landingCounter = maxLandingTime;
             startJump = true;
         }
 
-        // Camera follow
-        if (IsOwner && mainCamera)
-        {
-            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
-        }
-
-
         // Player state transitions
-        if (IsOwner) {
         switch(playerGroundStatus.Value) {
             case PlayerGroundStatus.GROUNDED:
                 // Grounded -> Jumping
@@ -137,7 +174,6 @@ public class PlayerController : NetworkBehaviour {
                                 (moveDirection < 0)? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
                                 (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
-        }
 
         // Shoot light ball
         if (Input.GetKeyDown(KeyCode.Space) && timeUntilLightBall <= 0f) {
@@ -170,6 +206,7 @@ public class PlayerController : NetworkBehaviour {
         } else if (timeUntilLightBall > 0f) {
             timeUntilLightBall -= Time.deltaTime;
         }
+
     }
 
     void FixedUpdate()
