@@ -32,6 +32,14 @@ public class Lever : NetworkBehaviour {
                 }
             }
 
+            // TORCHES
+            Object [] torches = GameObject.FindObjectsOfType(typeof(Torch));
+            foreach(Torch torch in torches) {
+                if (torch.Tag == Tag) {
+                    torch.lit = !torch.lit;
+                }
+            }
+
             armLastPosition = armPosition;
         }
 
