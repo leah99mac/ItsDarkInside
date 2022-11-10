@@ -38,6 +38,13 @@ public class Ghost_Sprite_Controller : MonoBehaviour
         PlayerController.PlayerDirectionStatus dirStatus = parentPlayerController.playerDirectionStatus.Value;
         bool moving = (dirStatus != PlayerController.PlayerDirectionStatus.IDLE);
 
+        // Movement direction
+        if (dirStatus == PlayerController.PlayerDirectionStatus.RIGHT) {
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        } else {
+            transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+        }
+
         // Update time
         floatTime = (floatTime + Time.deltaTime) % floatPeriod;
 

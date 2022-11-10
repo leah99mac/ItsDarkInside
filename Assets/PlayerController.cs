@@ -29,7 +29,6 @@ public class PlayerController : NetworkBehaviour {
     public float lightBallSpeed = 3.0f;
 
 
-    bool facingRight = true;
     float moveDirection = 0;
     float landingCounter = 0;
     bool isGrounded = false;
@@ -48,7 +47,6 @@ public class PlayerController : NetworkBehaviour {
         r2d.freezeRotation = true;
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
-        facingRight = t.localScale.x > 0;
 
         if (mainCamera)
         {
@@ -115,21 +113,6 @@ public class PlayerController : NetworkBehaviour {
         // If landing, no movement
         if (playerGroundStatus.Value == PlayerGroundStatus.LANDING) {
             moveDirection = 0f;
-        }
-
-        // Change facing direction
-        if (moveDirection != 0)
-        {
-            if (moveDirection > 0 && !facingRight)
-            {
-                facingRight = true;
-                t.localScale = new Vector3(Mathf.Abs(t.localScale.x), t.localScale.y, transform.localScale.z);
-            }
-            if (moveDirection < 0 && facingRight)
-            {
-                facingRight = false;
-                t.localScale = new Vector3(-Mathf.Abs(t.localScale.x), t.localScale.y, t.localScale.z);
-            }
         }
 
         // Jumping
