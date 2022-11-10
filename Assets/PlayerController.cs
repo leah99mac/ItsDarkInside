@@ -176,7 +176,7 @@ public class PlayerController : NetworkBehaviour {
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
 
         // Shoot light ball
-        if (Input.GetKeyDown(KeyCode.Space) && timeUntilLightBall <= 0f) {
+        if (tryShootLightBall && timeUntilLightBall <= 0f) {
             // Get velocity
             Vector2 vel;
             Vector3 spawn;
@@ -199,6 +199,7 @@ public class PlayerController : NetworkBehaviour {
             spawn += transform.position;
             // Create ball
             GameObject ball = Instantiate(lightBall, spawn, Quaternion.identity);
+            ball.GetComponent<NetworkObject>().Spawn();
             ball.GetComponent<Rigidbody2D>().velocity = vel;
 
             // Reset cooldown
