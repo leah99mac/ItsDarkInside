@@ -28,6 +28,7 @@ public class NetworkUI : MonoBehaviour
 
         clientButton.onClick.AddListener(() => {
             transport.ConnectionData.Address = ipField?.text;
+            Debug.Log("Connecting to " + transport.ConnectionData.Address);
             NetworkManager.Singleton.StartClient();
             gameObject.SetActive(false);
         });
