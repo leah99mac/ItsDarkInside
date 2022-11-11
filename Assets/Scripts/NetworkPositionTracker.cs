@@ -159,7 +159,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         internal float VelocityX, VelocityY, VelocityZ;
         internal double SentTime;
 
-        // Authoritative and non-authoritative sides use this to determine if a NetworkTransformState is
+        // Authoritative and non-authoritative sides use this to determine if a NetworkPositionTrackerState is
         // dirty or not.
         internal bool IsDirty;
 
@@ -287,13 +287,9 @@ public class NetworkPositionTracker : NetworkBehaviour
     [Tooltip("Sets whether this transform should sync in local space or in world space")]
     public bool InLocalSpace = false;
 
-    /// <summary>
-    /// When enabled (default) interpolation is applied and when disabled no interpolation is applied
-    /// </summary>
-    public bool LinearInterpolate = true;
-    public bool SplineInterpolate = true; // Overrides linear interpolation
-                                          //public bool SnapshotInterpolate = false; // Not yet supported TODO - Quintin
-
+    // The interpolation type to use. Can be updated dynamically to change interpolation type
+    // Will do nothing server-side.
+    public DynamicInterpolatorFloat.InterpolationType interpolationType;
 
 
 
@@ -343,11 +339,11 @@ public class NetworkPositionTracker : NetworkBehaviour
     private ClientRpcParams m_ClientRpcParams = new ClientRpcParams() { Send = new ClientRpcSendParams() };
     private List<ulong> m_ClientIds = new List<ulong>() { 0 };
 
-    // NEW- buffered splint interpolators used instead of linear.
-    private BufferedSplineInterpolator<float> m_PositionXInterpolator;
-    private BufferedSplineInterpolator<float> m_PositionYInterpolator;
-    private BufferedSplineInterpolator<float> m_PositionZInterpolator;
-    private readonly List<BufferedSplineInterpolator<float>> m_AllFloatInterpolators = new List<BufferedSplineInterpolator<float>>(3);
+    // NEW- dynamic interpolators used instead of linear.
+    private DynamicInterpolatorFloat m_PositionXInterpolator;
+    private DynamicInterpolatorFloat m_PositionYInterpolator;
+    private DynamicInterpolatorFloat m_PositionZInterpolator;
+    private readonly List<DynamicInterpolatorFloat> m_AllFloatInterpolators = new List<DynamicInterpolatorFloat>(3);
 
     // Used by integration test
     private NetworkPositionTrackerState m_LastSentState;
@@ -412,6 +408,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         if (ApplyTransformToNetworkState(ref m_LocalAuthoritativeNetworkState, dirtyTime, transformToCommit, rbToCommit))
         {
             // ...commit the state
+            // This does run correctly (and only on server)
             ReplicatedNetworkState.Value = m_LocalAuthoritativeNetworkState;
         }
     }
@@ -429,10 +426,10 @@ public class NetworkPositionTracker : NetworkBehaviour
     /// <summary>
     /// Used for integration testing:
     /// Will apply the transform to the LocalAuthoritativeNetworkState and get detailed dirty information returned
-    /// in the <see cref="NetworkTransformState"/> returned.
+    /// in the <see cref="NetworkPositionTrackerState"/> returned.
     /// </summary>
     /// <param name="transform">transform to apply</param>
-    /// <returns>NetworkTransformState</returns>
+    /// <returns>NetworkPositionTrackerState</returns>
     internal NetworkPositionTrackerState ApplyLocalNetworkState(Transform transform, Rigidbody2D rb)
     {
         // Since we never commit these changes, we need to simulate that any changes were committed previously and the bitset
@@ -535,7 +532,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         // NOTE ABOUT INTERPOLATING AND THE CODE BELOW:
         // We always apply the interpolated state for any axis we are synchronizing even when the state has no deltas
         // to assure we fully interpolate to our target even after we stop extrapolating 1 tick later.
-        var useInterpolatedValue = !networkState.IsTeleportingNextFrame && SplineInterpolate; // TODO add default linear interpolation back?
+        var useInterpolatedValue = !networkState.IsTeleportingNextFrame; // TODO add default linear interpolation back?
         if (useInterpolatedValue)
         {
             if (SyncPositionX)
@@ -700,11 +697,8 @@ public class NetworkPositionTracker : NetworkBehaviour
             return;
         }
 
-        if (SplineInterpolate)
-        {
-            // Add measurements for the new state's deltas
-            AddInterpolatedState(newState);
-        }
+        // Add measurements for the new state's deltas
+        AddInterpolatedState(newState);
     }
 
     /// <summary>
@@ -729,17 +723,17 @@ public class NetworkPositionTracker : NetworkBehaviour
     {
 
         // All other interpolators are BufferedLinearInterpolatorFloats
-        m_PositionXInterpolator = new BufferedSplineInterpolatorFloat();
-        m_PositionYInterpolator = new BufferedSplineInterpolatorFloat();
-        m_PositionZInterpolator = new BufferedSplineInterpolatorFloat();
+        m_PositionXInterpolator = new DynamicInterpolatorFloat();
+        m_PositionYInterpolator = new DynamicInterpolatorFloat();
+        m_PositionZInterpolator = new DynamicInterpolatorFloat();
 
         // Used to quickly iteration over the BufferedLinearInterpolatorFloat
         // instances
         if (m_AllFloatInterpolators.Count == 0)
         {
-            m_AllFloatInterpolators.Add(m_PositionXInterpolator);
-            m_AllFloatInterpolators.Add(m_PositionYInterpolator);
-            m_AllFloatInterpolators.Add(m_PositionZInterpolator);
+            if (SyncPositionX) m_AllFloatInterpolators.Add(m_PositionXInterpolator);
+            if (SyncPositionY) m_AllFloatInterpolators.Add(m_PositionYInterpolator);
+            if (SyncPositionZ) m_AllFloatInterpolators.Add(m_PositionZInterpolator);
         }
     }
 
@@ -801,6 +795,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         {
             return;
         }
+
 
         CanCommitToTransform = IsServerAuthoritative() ? IsServer : IsOwner;
         var replicatedState = ReplicatedNetworkState;
@@ -958,16 +953,14 @@ public class NetworkPositionTracker : NetworkBehaviour
         }
         else // Non-Authority
         {
-            if (SplineInterpolate)
+            var serverTime = NetworkManager.ServerTime;
+            var cachedDeltaTime = Time.deltaTime;
+            var cachedServerTime = serverTime.Time;
+            var cachedRenderTime = serverTime.TimeTicksAgo(1).Time;
+            foreach (var interpolator in m_AllFloatInterpolators)
             {
-                var serverTime = NetworkManager.ServerTime;
-                var cachedDeltaTime = Time.deltaTime;
-                var cachedServerTime = serverTime.Time;
-                var cachedRenderTime = serverTime.TimeTicksAgo(1).Time;
-                foreach (var interpolator in m_AllFloatInterpolators)
-                {
-                    interpolator.Update(cachedDeltaTime, cachedRenderTime, cachedServerTime);
-                }
+                interpolator.interpolationType = interpolationType;
+                interpolator.Update(cachedDeltaTime, cachedRenderTime, cachedServerTime);
             }
 
             // Apply the current authoritative state
@@ -998,7 +991,7 @@ public class NetworkPositionTracker : NetworkBehaviour
     /// <returns>(<see cref="true"/> or <see cref="false"/>) where when false it runs as owner-client authoritative</returns>
     protected virtual bool OnIsServerAuthoritative()
     {
-        return false;
+        return true;
     }
 
     /// <summary>
