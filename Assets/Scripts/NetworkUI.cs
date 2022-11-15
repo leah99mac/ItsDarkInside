@@ -13,6 +13,14 @@ public class NetworkUI : MonoBehaviour
     [SerializeField] private Button clientButton;
     [SerializeField] private TMP_InputField ipField;
 
+    [SerializeField] private Button toggleInterpolationButton;
+    [SerializeField] private TMP_Text toggleInterpolationButtonText;
+    bool interpolate;
+
+    [SerializeField] private Button toggleInterpolationTypeButton;
+    [SerializeField] private TMP_Text toggleInterpolationTypeButtonText;
+    DynamicInterpolatorFloat.InterpolationType interpolationType;
+
     private UnityTransport transport;
 
     void Start() {
@@ -21,22 +29,73 @@ public class NetworkUI : MonoBehaviour
 
         transport = NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
         
+        SetToggleInterpolationActive(false);
+
         hostButton.onClick.AddListener(() => {
             NetworkManager.Singleton.StartHost();
-            gameObject.SetActive(false);
+            SetHostClientSelectionActive(false);
         });
 
         clientButton.onClick.AddListener(() => {
             transport.ConnectionData.Address = ipField?.text;
+            Debug.Log("Connecting to " + transport.ConnectionData.Address);
             NetworkManager.Singleton.StartClient();
-            gameObject.SetActive(false);
+            SetHostClientSelectionActive(false);
+
+            SetToggleInterpolationActive(true);
+        });
+
+        interpolationType = DynamicInterpolatorFloat.InterpolationType.LINEAR;
+
+        toggleInterpolationTypeButton.onClick.AddListener(() => {
+            if (interpolationType == DynamicInterpolatorFloat.InterpolationType.CUBIC_SPLINE) {
+                interpolationType = DynamicInterpolatorFloat.InterpolationType.LINEAR;
+                toggleInterpolationTypeButtonText.SetText("Interpolation: LINEAR");
+            } else {
+                interpolationType = DynamicInterpolatorFloat.InterpolationType.CUBIC_SPLINE;
+                toggleInterpolationTypeButtonText.SetText("Interpolation: CUBIC SPLINE");
+            }
+
+            // Set interpolation
+            Object [] interps = GameObject.FindObjectsOfType(typeof(NetworkPositionTracker));
+            foreach (NetworkPositionTracker interp in interps) {
+                interp.interpolationType = interpolationType;
+            }
+        });
+
+        toggleInterpolationButton.onClick.AddListener(() => {
+            if (interpolate) {
+                toggleInterpolationButtonText.SetText("Interpolation: OFF");
+                interpolate = false;
+            } else {
+                toggleInterpolationButtonText.SetText("Interpolation: ON");
+                interpolate = true;
+            }
+
+            // Set interpolation
+            Object [] interps = GameObject.FindObjectsOfType(typeof(NetworkPositionTracker));
+            foreach (NetworkPositionTracker interp in interps) {
+                interp.interpolate = interpolate;
+            }
         });
 
     }
 
     private void HandleClientDisconnect(ulong clientId) {
         if (clientId == NetworkManager.Singleton.LocalClientId) {
-            gameObject.SetActive(true);
+            SetHostClientSelectionActive(true);
+            SetToggleInterpolationActive(false);
         }
+    }
+
+    private void SetHostClientSelectionActive(bool active) {
+        hostButton.gameObject.SetActive(active);
+        clientButton.gameObject.SetActive(active);
+        ipField.gameObject.SetActive(active);
+    }
+
+    private void SetToggleInterpolationActive(bool active) {
+        toggleInterpolationButton.gameObject.SetActive(active);
+        toggleInterpolationTypeButton.gameObject.SetActive(active);
     }
 }

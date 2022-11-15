@@ -20,16 +20,19 @@ public class PlayerController : NetworkBehaviour {
     public Camera mainCamera;
 
     // Player status output
-    public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
-    public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-    // Player activate button has been pressed
-    public bool activate = false;
+    // Light Ball
+    public GameObject lightBall;
+    public float lightBallCooldown = 1.0f;
+    public float lightBallSpeed = 3.0f;
 
-    bool facingRight = true;
+
     float moveDirection = 0;
     float landingCounter = 0;
     bool isGrounded = false;
+    float timeUntilLightBall = 0f;
     Vector3 cameraPos;
     Rigidbody2D r2d;
     CapsuleCollider2D mainCollider;
@@ -44,7 +47,6 @@ public class PlayerController : NetworkBehaviour {
         r2d.freezeRotation = true;
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
-        facingRight = t.localScale.x > 0;
 
         if (mainCamera)
         {
@@ -55,52 +57,74 @@ public class PlayerController : NetworkBehaviour {
     // Update is called once per frame
     void Update()
     {
-        // Movement controls
-        if (IsOwner && (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D)) && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
-        {
-            moveDirection = Input.GetKey(KeyCode.A) ? -1 : 1;
-        }
-        else
-        {
-            if (isGrounded || r2d.velocity.magnitude < 0.01f)
-            {
-                moveDirection = 0;
-            }
+        // Only move player if we own it
+        if (IsOwner) {
+
+            // Get the input byte to send to the server
+            byte input = ConstructInputByte();
+            // No input, no message needed?
+            //if (input != 0) {
+                MovePlayerServerRpc(input);
+            //}
         }
 
-        // Change facing direction
-        if (moveDirection != 0)
+        
+
+        // Camera follow TODO FIX THIS
+        if (IsOwner && mainCamera)
         {
-            if (moveDirection > 0 && !facingRight)
-            {
-                facingRight = true;
-                t.localScale = new Vector3(Mathf.Abs(t.localScale.x), t.localScale.y, transform.localScale.z);
-            }
-            if (moveDirection < 0 && facingRight)
-            {
-                facingRight = false;
-                t.localScale = new Vector3(-Mathf.Abs(t.localScale.x), t.localScale.y, t.localScale.z);
-            }
+            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
+        }
+
+    }
+
+    private byte ConstructInputByte() {
+        // Construct the input byte to be sent to the server (or used by the server)
+        // This byte is of the format (_ is unused):
+        // BIT      0   1   2   3   4       5   6   7
+        // KEY      W   A   S   D   Space   _   _   _
+        // When we make the switch to android, we'll have to change this
+        // Call this function in Update() only!
+
+        byte input = 0;
+        if (Input.GetKeyDown(KeyCode.W))        input |= 0b1;
+        if (Input.GetKey(KeyCode.A))            input |= 0b10;
+        if (Input.GetKeyDown(KeyCode.S))        input |= 0b100;
+        if (Input.GetKey(KeyCode.D))            input |= 0b1000;
+        if (Input.GetKeyDown(KeyCode.Space))    input |= 0b10000;
+
+        return input;
+    }
+
+    // This function will be requested by the client, but executed on the server
+    // This way, we send our input from the client to the server which can do all physics calculations
+    // Only call this on players you own!
+    [ServerRpc]
+    public void MovePlayerServerRpc(byte input)
+    {
+        // Extract input data
+        moveDirection = 0f;
+        if ((input & 0b10   )!= 0) moveDirection += -1f; // A pressed, move left
+        if ((input & 0b1000 )!= 0) moveDirection +=  1f; // D pressed, move right
+        bool tryJump = ((input & 0b1 )!= 0);
+        bool tryShootLightBall = ((input & 0b10000 )!= 0);
+
+        // Horizontal movement
+        // If landing, no movement
+        if (playerGroundStatus.Value == PlayerGroundStatus.LANDING) {
+            moveDirection = 0f;
         }
 
         // Jumping
         bool startJump = false;
-        if (IsOwner && Input.GetKeyDown(KeyCode.W) && isGrounded && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
+        if (tryJump && isGrounded && playerGroundStatus.Value != PlayerGroundStatus.LANDING)
         {
             r2d.velocity = new Vector2(r2d.velocity.x, jumpHeight);
             landingCounter = maxLandingTime;
             startJump = true;
         }
 
-        // Camera follow
-        if (IsOwner && mainCamera)
-        {
-            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
-        }
-
-
         // Player state transitions
-        if (IsOwner) {
         switch(playerGroundStatus.Value) {
             case PlayerGroundStatus.GROUNDED:
                 // Grounded -> Jumping
@@ -133,10 +157,40 @@ public class PlayerController : NetworkBehaviour {
                                 (moveDirection < 0)? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
                                 (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
+
+        // Shoot light ball
+        if (tryShootLightBall && timeUntilLightBall <= 0f) {
+            // Get velocity
+            Vector2 vel;
+            Vector3 spawn;
+            switch(playerDirectionStatus.Value) {
+                case PlayerDirectionStatus.LEFT:
+                    vel = Vector2.left;
+                    spawn = new Vector3(-0.6f, 0, -0.01f);
+                break;
+                case PlayerDirectionStatus.RIGHT:
+                    vel = Vector2.right;
+                    spawn = new Vector3(0.6f, 0, -0.01f);
+                break;
+                case PlayerDirectionStatus.IDLE:
+                default:
+                    vel = Vector2.up;
+                    spawn = new Vector3(0, 0.6f, -0.01f);
+                break;
+            }
+            vel *= lightBallSpeed;
+            spawn += transform.position;
+            // Create ball
+            GameObject ball = Instantiate(lightBall, spawn, Quaternion.identity);
+            ball.GetComponent<NetworkObject>().Spawn();
+            ball.GetComponent<Rigidbody2D>().velocity = vel;
+
+            // Reset cooldown
+            timeUntilLightBall = lightBallCooldown;
+        } else if (timeUntilLightBall > 0f) {
+            timeUntilLightBall -= Time.deltaTime;
         }
 
-        // Activate key
-        activate = Input.GetKeyDown(KeyCode.Space);
     }
 
     void FixedUpdate()

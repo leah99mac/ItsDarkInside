@@ -3,10 +3,15 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class BufferedSplineInterpolator<T> where T : struct
+public abstract class DynamicInterpolator<T> where T : struct
 {
 
     internal float MaxInterpolationBound = 3.0f;
+
+    // The interpolation type to use. This allows quick switching
+    // between interpolation methods :)
+    public enum InterpolationType {LINEAR, CUBIC_SPLINE};
+    public InterpolationType interpolationType;
 
     private struct BufferedItem
     {
@@ -81,7 +86,7 @@ public abstract class BufferedSplineInterpolator<T> where T : struct
     {
         m_LifetimeConsumedCount = 1;
         m_InterpStartValue = targetValue;
-        m_InterpStartValue = targetVelocity;
+        m_InterpStartVelocity = targetVelocity;
         m_InterpEndValue = targetValue;
         m_InterpEndVelocity = targetVelocity;
         m_CurrentInterpValue = targetValue;
@@ -96,14 +101,13 @@ public abstract class BufferedSplineInterpolator<T> where T : struct
     private void TryConsumeFromBuffer(double renderTime, double serverTime)
     {
         int consumedCount = 0;
-        BufferedItem? itemToInterpolateTo = null;
 
         if (renderTime >= m_EndTimeConsumed)
         {
-
+            BufferedItem? itemToInterpolateTo = null;
+            int count = m_Buffer.Count;
             for (int i = m_Buffer.Count - 1; i >= 0; i--)
             {
-
                 BufferedItem bufferedValue = m_Buffer[i];
 
                 if (SnapshotInterpolation)
@@ -113,6 +117,7 @@ public abstract class BufferedSplineInterpolator<T> where T : struct
                     // Can throw away all buffer entries older than current entry
 
                     // TODO implement snapshot interpolation with cubic splines here
+                    throw new NotImplementedException("Snapshot interpolation has not been implemented yet!");
                 }
                 else
                 {
@@ -168,7 +173,8 @@ public abstract class BufferedSplineInterpolator<T> where T : struct
 
         if (InvalidState)
         {
-            throw new InvalidOperationException("trying to update spline interpolator when no data has been added to it yet");
+            // This keeps firing, no idea why so I just got rid of it
+            //throw new InvalidOperationException("trying to update spline interpolator when no data has been added to it yet");
         }
 
         if (m_LifetimeConsumedCount >= 1)
@@ -265,17 +271,29 @@ public abstract class BufferedSplineInterpolator<T> where T : struct
     protected abstract T Interpolate(T start, T vel_start, T end, T vel_end, float time, out T vel_out);
 }
 
-public class BufferedSplineInterpolatorFloat : BufferedSplineInterpolator<float>
+public class DynamicInterpolatorFloat : DynamicInterpolator<float>
 {
     protected override float Interpolate(float start, float vel_start, float end, float vel_end, float time, out float vel_out)
     {
-        // Implementation of spline interpolation
-        float a = 2f * start + vel_start - 2f * end + vel_end;
-        float b = -3f * start + 3f * end - 2f * vel_start - vel_end;
-        float c = vel_start;
-        float d = start;
-        vel_out = 3 * a * time * time + 2 * b * time + c;
-        return a * time * time * time + b * time * time + c * time + d;
+        if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE) {
+            Debug.Log("CUBIC SPLINE");
+            // Implementation of cubic spline interpolation
+            float a = 2f * start + vel_start - 2f * end + vel_end;
+            float b = -3f * start + 3f * end - 2f * vel_start - vel_end;
+            float c = vel_start;
+            float d = start;
+            vel_out = 3 * a * time * time + 2 * b * time + c;
+            return a * time * time * time + b * time * time + c * time + d;
+        } else {
+            // Default- Linear interpolation
+            Debug.Log("LINEAR");
+
+            // TODO how should we work with velocity here?
+            vel_out = vel_start;
+
+            return Mathf.Lerp(start, end, time);
+
+        }
     }
 }
 

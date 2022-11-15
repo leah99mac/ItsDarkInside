@@ -8,6 +8,10 @@ using UnityEngine.Rendering.Universal;
 
 public class Torch : MonoBehaviour
 {
+
+    // Tag of torch, will be toggled by lever if tag matches
+    public string Tag;
+
     // Rate at which the torch flickers
     public float flickerPeriod = 1.0f;
 

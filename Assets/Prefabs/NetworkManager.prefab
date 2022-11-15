@@ -50,10 +50,15 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 4737758659926765080}
-    PlayerPrefab: {fileID: 3572634147981541, guid: fa3524c550193cb40ae6e8f5c88d69bc, type: 3}
+    PlayerPrefab: {fileID: 3572634147981541, guid: 71d4cf960642bb54c8a1149d2ea12d5d, type: 3}
     NetworkPrefabs:
     - Override: 0
-      Prefab: {fileID: 3572634147981541, guid: fa3524c550193cb40ae6e8f5c88d69bc, type: 3}
+      Prefab: {fileID: 3572634147981541, guid: 71d4cf960642bb54c8a1149d2ea12d5d, type: 3}
+      SourcePrefabToOverride: {fileID: 0}
+      SourceHashToOverride: 0
+      OverridingTargetPrefab: {fileID: 0}
+    - Override: 0
+      Prefab: {fileID: 8867402015553256802, guid: fbf4215f4be2ae1438ccc0e3dc71b987, type: 3}
       SourcePrefabToOverride: {fileID: 0}
       SourceHashToOverride: 0
       OverridingTargetPrefab: {fileID: 0}
@@ -92,7 +97,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 127.0.0.1
+    Address: 0.0.0.0
     Port: 7777
     ServerListenAddress: 
   DebugSimulator:
