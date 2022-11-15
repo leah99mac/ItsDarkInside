@@ -15,6 +15,10 @@ public class NetworkUI : MonoBehaviour
 
     [SerializeField] private Button toggleInterpolationButton;
     [SerializeField] private TMP_Text toggleInterpolationButtonText;
+    bool interpolate;
+
+    [SerializeField] private Button toggleInterpolationTypeButton;
+    [SerializeField] private TMP_Text toggleInterpolationTypeButtonText;
     DynamicInterpolatorFloat.InterpolationType interpolationType;
 
     private UnityTransport transport;
@@ -43,20 +47,35 @@ public class NetworkUI : MonoBehaviour
 
         interpolationType = DynamicInterpolatorFloat.InterpolationType.LINEAR;
 
-        toggleInterpolationButton.onClick.AddListener(() => {
+        toggleInterpolationTypeButton.onClick.AddListener(() => {
             if (interpolationType == DynamicInterpolatorFloat.InterpolationType.CUBIC_SPLINE) {
                 interpolationType = DynamicInterpolatorFloat.InterpolationType.LINEAR;
-                toggleInterpolationButtonText.SetText("Interpolation: LINEAR");
-
+                toggleInterpolationTypeButtonText.SetText("Interpolation: LINEAR");
             } else {
                 interpolationType = DynamicInterpolatorFloat.InterpolationType.CUBIC_SPLINE;
-                toggleInterpolationButtonText.SetText("Interpolation: CUBIC SPLINE");
+                toggleInterpolationTypeButtonText.SetText("Interpolation: CUBIC SPLINE");
             }
 
             // Set interpolation
             Object [] interps = GameObject.FindObjectsOfType(typeof(NetworkPositionTracker));
             foreach (NetworkPositionTracker interp in interps) {
                 interp.interpolationType = interpolationType;
+            }
+        });
+
+        toggleInterpolationButton.onClick.AddListener(() => {
+            if (interpolate) {
+                toggleInterpolationButtonText.SetText("Interpolation: OFF");
+                interpolate = false;
+            } else {
+                toggleInterpolationButtonText.SetText("Interpolation: ON");
+                interpolate = true;
+            }
+
+            // Set interpolation
+            Object [] interps = GameObject.FindObjectsOfType(typeof(NetworkPositionTracker));
+            foreach (NetworkPositionTracker interp in interps) {
+                interp.interpolate = interpolate;
             }
         });
 
@@ -77,6 +96,6 @@ public class NetworkUI : MonoBehaviour
 
     private void SetToggleInterpolationActive(bool active) {
         toggleInterpolationButton.gameObject.SetActive(active);
-        toggleInterpolationButtonText.gameObject.SetActive(active);
+        toggleInterpolationTypeButton.gameObject.SetActive(active);
     }
 }

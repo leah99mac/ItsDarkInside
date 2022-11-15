@@ -86,7 +86,7 @@ public abstract class DynamicInterpolator<T> where T : struct
     {
         m_LifetimeConsumedCount = 1;
         m_InterpStartValue = targetValue;
-        m_InterpStartValue = targetVelocity;
+        m_InterpStartVelocity = targetVelocity;
         m_InterpEndValue = targetValue;
         m_InterpEndVelocity = targetVelocity;
         m_CurrentInterpValue = targetValue;
@@ -276,6 +276,7 @@ public class DynamicInterpolatorFloat : DynamicInterpolator<float>
     protected override float Interpolate(float start, float vel_start, float end, float vel_end, float time, out float vel_out)
     {
         if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE) {
+            Debug.Log("CUBIC SPLINE");
             // Implementation of cubic spline interpolation
             float a = 2f * start + vel_start - 2f * end + vel_end;
             float b = -3f * start + 3f * end - 2f * vel_start - vel_end;
@@ -285,6 +286,7 @@ public class DynamicInterpolatorFloat : DynamicInterpolator<float>
             return a * time * time * time + b * time * time + c * time + d;
         } else {
             // Default- Linear interpolation
+            Debug.Log("LINEAR");
 
             // TODO how should we work with velocity here?
             vel_out = vel_start;

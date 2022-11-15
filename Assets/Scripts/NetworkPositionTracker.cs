@@ -287,6 +287,9 @@ public class NetworkPositionTracker : NetworkBehaviour
     [Tooltip("Sets whether this transform should sync in local space or in world space")]
     public bool InLocalSpace = false;
 
+    // Whether to interpolate or not
+    public bool interpolate = true;
+
     // The interpolation type to use. Can be updated dynamically to change interpolation type
     // Will do nothing server-side.
     public DynamicInterpolatorFloat.InterpolationType interpolationType;
@@ -382,7 +385,13 @@ public class NetworkPositionTracker : NetworkBehaviour
             // We are an owner requesting to update our state
             if (!m_CachedIsServer)
             {
-                SetStateServerRpc(position, velocity, false);
+                // Send velocity only if we need it
+                if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE) 
+                {
+                    SetStateVelocityServerRpc(position, velocity, false);
+                } else {
+                    SetStateNoVelocityServerRpc(position, false);
+                }
             }
             else // Server is always authoritative (including owner authoritative)
             {
@@ -532,7 +541,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         // NOTE ABOUT INTERPOLATING AND THE CODE BELOW:
         // We always apply the interpolated state for any axis we are synchronizing even when the state has no deltas
         // to assure we fully interpolate to our target even after we stop extrapolating 1 tick later.
-        var useInterpolatedValue = !networkState.IsTeleportingNextFrame; // TODO add default linear interpolation back?
+        var useInterpolatedValue = !networkState.IsTeleportingNextFrame && interpolate;
         if (useInterpolatedValue)
         {
             if (SyncPositionX)
@@ -601,7 +610,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         var currentVelocity = rb.velocity;
 
         // When there is a change in interpolation or if teleporting, we reset
-        if ((newState.InLocalSpace != InLocalSpace) || newState.IsTeleportingNextFrame)
+        if (!interpolate || (newState.InLocalSpace != InLocalSpace) || newState.IsTeleportingNextFrame)
         {
             InLocalSpace = newState.InLocalSpace;
 
@@ -854,7 +863,13 @@ public class NetworkPositionTracker : NetworkBehaviour
             }
             else // Preserving the ability for server authoritative mode to accept state changes from owner
             {
-                SetStateServerRpc(pos, vel, !shouldGhostsInterpolate);
+                // Send velocity only if we need it
+                if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE) 
+                {
+                    SetStateVelocityServerRpc(pos, vel, !shouldGhostsInterpolate);
+                } else {
+                    SetStateNoVelocityServerRpc(pos, !shouldGhostsInterpolate);
+                }
             }
             return;
         }
@@ -903,9 +918,21 @@ public class NetworkPositionTracker : NetworkBehaviour
     /// Continued support for client-driven server authority model
     /// </remarks>
     [ServerRpc]
-    private void SetStateServerRpc(Vector3 pos, Vector3 vel, bool shouldTeleport)
+    private void SetStateVelocityServerRpc(Vector3 pos, Vector3 vel, bool shouldTeleport)
     {
         // server has received this RPC request to move change transform. give the server a chance to modify or even reject the move
+        if (OnClientRequestChange != null)
+        {
+            (pos, vel) = OnClientRequestChange(pos, vel);
+        }
+        SetStateInternal(pos, vel, shouldTeleport);
+    }
+
+    // An alternative RPC that does not take velocity, so network bandwidth is reduced
+    [ServerRpc]
+    private void SetStateNoVelocityServerRpc(Vector3 pos, bool shouldTeleport)
+    {
+        Vector3 vel = Vector3.zero;
         if (OnClientRequestChange != null)
         {
             (pos, vel) = OnClientRequestChange(pos, vel);
@@ -953,14 +980,17 @@ public class NetworkPositionTracker : NetworkBehaviour
         }
         else // Non-Authority
         {
-            var serverTime = NetworkManager.ServerTime;
-            var cachedDeltaTime = Time.deltaTime;
-            var cachedServerTime = serverTime.Time;
-            var cachedRenderTime = serverTime.TimeTicksAgo(1).Time;
-            foreach (var interpolator in m_AllFloatInterpolators)
+            if (interpolate)
             {
-                interpolator.interpolationType = interpolationType;
-                interpolator.Update(cachedDeltaTime, cachedRenderTime, cachedServerTime);
+                var serverTime = NetworkManager.ServerTime;
+                var cachedDeltaTime = Time.deltaTime;
+                var cachedServerTime = serverTime.Time;
+                var cachedRenderTime = serverTime.TimeTicksAgo(1).Time;
+                foreach (var interpolator in m_AllFloatInterpolators)
+                {
+                    interpolator.interpolationType = interpolationType;
+                    interpolator.Update(cachedDeltaTime, cachedRenderTime, cachedServerTime);
+                }
             }
 
             // Apply the current authoritative state

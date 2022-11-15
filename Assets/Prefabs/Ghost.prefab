@@ -215,7 +215,8 @@ MonoBehaviour:
   PositionThreshold: 0.001
   VelocityThreshold: 0.001
   InLocalSpace: 0
-  interpolationType: 1
+  interpolate: 0
+  interpolationType: 0
 --- !u!1 &5222351499767701652
 GameObject:
   m_ObjectHideFlags: 0
