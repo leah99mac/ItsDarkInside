@@ -14,8 +14,8 @@ public class PlayerController : NetworkBehaviour {
 
     // Move player in 2D space
     public float maxSpeed = 3.4f;
-    public float jumpHeight = 8.5f;
-    public float gravityScale = 1.5f;
+    public float jumpHeight = 80.0f;
+    public float gravityScale = 0.6f;
     public float maxLandingTime = 1.0f;
     public Camera mainCamera;
 
@@ -48,10 +48,9 @@ public class PlayerController : NetworkBehaviour {
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
 
-        if (mainCamera)
-        {
-            cameraPos = mainCamera.transform.position;
-        }
+        mainCamera = Camera.main;
+
+        cameraPos = mainCamera.transform.position;
     }
 
     // Update is called once per frame

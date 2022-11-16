@@ -71,9 +71,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be24b8231488d404f898a58927dbafaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 3.4
-  jumpHeight: 6.5
-  gravityScale: 1.5
+  maxSpeed: 3.6
+  jumpHeight: 7
+  gravityScale: 0.7
   maxLandingTime: 0.25
   mainCamera: {fileID: 0}
   playerDirectionStatus:
@@ -289,8 +289,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1287688689
-  m_SortingLayer: 1
+  m_SortingLayerID: 1092249223
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 749655020, guid: 99a8986836f127f47886a118c4991d90, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -336,6 +336,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7357989502844806455}
   - component: {fileID: 924907517970211147}
+  - component: {fileID: 8771954026730414976}
   m_Layer: 0
   m_Name: Spot Light
   m_TagString: Untagged
@@ -420,3 +421,23 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &8771954026730414976
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5743814006022821603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474bcb49853aa07438625e644c072ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Version: 1
+  m_UsePipelineSettings: 1
+  m_AdditionalLightsShadowResolutionTier: 2
+  m_LightLayerMask: 1
+  m_CustomShadowLayers: 0
+  m_ShadowLayerMask: 1
+  m_LightCookieSize: {x: 1, y: 1}
+  m_LightCookieOffset: {x: 0, y: 0}
