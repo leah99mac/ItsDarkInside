@@ -14,7 +14,7 @@ public class PlayerController : NetworkBehaviour {
 
     // Move player in 2D space
     public float maxSpeed = 3.4f;
-    public float jumpHeight = 6.5f;
+    public float jumpHeight = 8.5f;
     public float gravityScale = 1.5f;
     public float maxLandingTime = 1.0f;
     public Camera mainCamera;
