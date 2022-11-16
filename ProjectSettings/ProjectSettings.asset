@@ -17,7 +17,7 @@ PlayerSettings:
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
-  m_ShowUnitySplashScreen: 1
+  m_ShowUnitySplashScreen: 0
   m_ShowUnitySplashLogo: 1
   m_SplashScreenOverlayOpacity: 1
   m_SplashScreenAnimation: 1
@@ -88,7 +88,7 @@ PlayerSettings:
   bakeCollisionMeshes: 0
   forceSingleInstance: 0
   useFlipModelSwapchain: 1
-  resizableWindow: 0
+  resizableWindow: 1
   useMacAppStoreValidation: 0
   macAppStoreCategory: public.app-category.games
   gpuSkinning: 0
@@ -135,8 +135,7 @@ PlayerSettings:
     16:9: 1
     Others: 1
   bundleVersion: 1.0.2
-  preloadedAssets:
-  - {fileID: 9136696861974880866, guid: 0831644be9d3a874582cc82494652b2f, type: 2}
+  preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -574,7 +573,21 @@ PlayerSettings:
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    EmbeddedLinux: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    LinuxHeadlessSimulation: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    Nintendo Switch: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    PS4: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    PS5: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    Server: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    Stadia: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    Standalone: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    WebGL: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    Windows Store Apps: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    XboxOne: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    iPhone: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
+    tvOS: UNITY_MP_TOOLS_NET_STATS_MONITOR_ENABLED_IN_RELEASE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}
