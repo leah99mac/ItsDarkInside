@@ -48,9 +48,10 @@ public class PlayerController : NetworkBehaviour {
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
 
-        mainCamera = Camera.main;
+        if (mainCamera && IsOwner) {
+            mainCamera.gameObject.tag = "MainCamera";
+        }
 
-        cameraPos = mainCamera.transform.position;
     }
 
     // Update is called once per frame
@@ -65,14 +66,6 @@ public class PlayerController : NetworkBehaviour {
             //if (input != 0) {
                 MovePlayerServerRpc(input);
             //}
-        }
-
-        
-
-        // Camera follow TODO FIX THIS
-        if (IsOwner && mainCamera)
-        {
-            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
         }
 
     }
