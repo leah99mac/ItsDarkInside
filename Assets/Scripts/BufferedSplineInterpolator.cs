@@ -10,7 +10,7 @@ public abstract class DynamicInterpolator<T> where T : struct
 
     // The interpolation type to use. This allows quick switching
     // between interpolation methods :)
-    public enum InterpolationType {LINEAR, CUBIC_SPLINE};
+    public enum InterpolationType { LINEAR, CUBIC_SPLINE };
     public InterpolationType interpolationType;
 
     private struct BufferedItem
@@ -104,65 +104,67 @@ public abstract class DynamicInterpolator<T> where T : struct
 
         if (renderTime >= m_EndTimeConsumed)
         {
+
+            // If using snapshot interpolation, only change current interpolation values
+            // When current snapshot condition is met
+
+            if (SnapshotInterpolation)
+            {
+                // Snapshot interpolation
+                // If state has not yet reached interpolated value, wait until it gets there
+                if (!CompareValues(m_CurrentInterpValue, m_InterpEndValue)) {
+                    return;
+                }
+            }
+
             BufferedItem? itemToInterpolateTo = null;
             int count = m_Buffer.Count;
             for (int i = m_Buffer.Count - 1; i >= 0; i--)
             {
                 BufferedItem bufferedValue = m_Buffer[i];
 
-                if (SnapshotInterpolation)
-                {
-                    // Snapshot interpolation
-                    // End points are (current state, next state received by server)
-                    // Can throw away all buffer entries older than current entry
+                // No snapshot interpolation
+                // End points are (current state, newest state received by server)
+                // Can throw away all buffer entries older than newest entry
 
-                    // TODO implement snapshot interpolation with cubic splines here
-                    throw new NotImplementedException("Snapshot interpolation has not been implemented yet!");
-                }
-                else
+                // Find the buffer entry after serverTime if it exists
+                if (bufferedValue.TimeSent <= serverTime)
                 {
-                    // No snapshot interpolation
-                    // End points are (current state, newest state received by server)
-                    // Can throw away all buffer entries older than newest entry
-
-                    // Find the buffer entry after serverTime if it exists
-                    if (bufferedValue.TimeSent <= serverTime)
+                    if (!itemToInterpolateTo.HasValue || bufferedValue.TimeSent > itemToInterpolateTo.Value.TimeSent)
                     {
-                        if (!itemToInterpolateTo.HasValue || bufferedValue.TimeSent > itemToInterpolateTo.Value.TimeSent)
+                        // Newer entry in buffer, use this one
+
+                        // Find start values
+                        if (m_LifetimeConsumedCount == 0)
                         {
-                            // Newer entry in buffer, use this one
-
-                            // Find start values
-                            if (m_LifetimeConsumedCount == 0)
-                            {
-                                // Interpolator is not initialized, teleport
-                                m_StartTimeConsumed = bufferedValue.TimeSent;
-                                m_InterpStartValue = bufferedValue.Item;
-                                m_InterpStartVelocity = bufferedValue.Velocity;
-                            }
-                            else if (consumedCount == 0)
-                            {
-                                // Interpolating to new value, end becomes start
-                                m_StartTimeConsumed = m_EndTimeConsumed;
-                                m_InterpStartValue = m_InterpEndValue;
-                                m_InterpStartVelocity = m_InterpEndVelocity;
-                            }
-
-                            // Find end values 
-                            if (bufferedValue.TimeSent > m_EndTimeConsumed)
-                            {
-                                itemToInterpolateTo = bufferedValue;
-                                m_EndTimeConsumed = bufferedValue.TimeSent;
-                                m_InterpEndValue = bufferedValue.Item;
-                                m_InterpEndVelocity = bufferedValue.Velocity;
-                            }
+                            // Interpolator is not initialized, teleport
+                            m_StartTimeConsumed = bufferedValue.TimeSent;
+                            m_InterpStartValue = bufferedValue.Item;
+                            m_InterpStartVelocity = bufferedValue.Velocity;
+                        }
+                        else if (consumedCount == 0)
+                        {
+                            // Interpolating to new value, end becomes start
+                            m_StartTimeConsumed = m_EndTimeConsumed;
+                            m_InterpStartValue = m_InterpEndValue;
+                            m_InterpStartVelocity = m_InterpEndVelocity;
                         }
 
-                        m_Buffer.RemoveAt(i);
-                        consumedCount++;
-                        m_LifetimeConsumedCount++;
+                        // Find end values 
+                        if (bufferedValue.TimeSent > m_EndTimeConsumed)
+                        {
+                            itemToInterpolateTo = bufferedValue;
+                            m_EndTimeConsumed = bufferedValue.TimeSent;
+                            m_InterpEndValue = bufferedValue.Item;
+                            m_InterpEndVelocity = bufferedValue.Velocity;
+                        }
                     }
+
+                    m_Buffer.RemoveAt(i);
+                    consumedCount++;
+                    m_LifetimeConsumedCount++;
                 }
+
             }
         }
     }
@@ -269,13 +271,20 @@ public abstract class DynamicInterpolator<T> where T : struct
     /// <param name="time">The time value used to interpolate between start and end values (pos)</param>
     /// <returns>The interpolated value</returns>
     protected abstract T Interpolate(T start, T vel_start, T end, T vel_end, float time, out T vel_out);
+
+    // Compares the values of type T, returns true if they are equal
+    // This is used for state comparison, so some tolerance is probably a good idea
+    protected abstract bool CompareValues(T a, T b);
+
 }
 
 public class DynamicInterpolatorFloat : DynamicInterpolator<float>
 {
+
     protected override float Interpolate(float start, float vel_start, float end, float vel_end, float time, out float vel_out)
     {
-        if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE) {
+        if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE)
+        {
             Debug.Log("CUBIC SPLINE");
             // Implementation of cubic spline interpolation
             float a = 2f * start + vel_start - 2f * end + vel_end;
@@ -284,7 +293,9 @@ public class DynamicInterpolatorFloat : DynamicInterpolator<float>
             float d = start;
             vel_out = 3 * a * time * time + 2 * b * time + c;
             return a * time * time * time + b * time * time + c * time + d;
-        } else {
+        }
+        else
+        {
             // Default- Linear interpolation
             Debug.Log("LINEAR");
 
@@ -294,6 +305,11 @@ public class DynamicInterpolatorFloat : DynamicInterpolator<float>
             return Mathf.Lerp(start, end, time);
 
         }
+    }
+
+    protected override bool CompareValues(float a, float b)
+    {
+        return Math.Abs(a - b) < 0.01; // TODO test with different tolerances
     }
 }
 

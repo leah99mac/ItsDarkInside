@@ -290,6 +290,9 @@ public class NetworkPositionTracker : NetworkBehaviour
     // Whether to interpolate or not
     public bool interpolate = true;
 
+    // Use snapshot interpolation
+    public bool snapshotInterpolation = true;
+
     // The interpolation type to use. Can be updated dynamically to change interpolation type
     // Will do nothing server-side.
     public DynamicInterpolatorFloat.InterpolationType interpolationType;
@@ -989,6 +992,7 @@ public class NetworkPositionTracker : NetworkBehaviour
                 foreach (var interpolator in m_AllFloatInterpolators)
                 {
                     interpolator.interpolationType = interpolationType;
+                    interpolator.SnapshotInterpolation = snapshotInterpolation;
                     interpolator.Update(cachedDeltaTime, cachedRenderTime, cachedServerTime);
                 }
             }
