@@ -32,7 +32,7 @@ public class PlayerController : NetworkBehaviour
     public float lightBallSpeed = 3.0f;
 
     // Debug network data
-    public bool publishNetworkData = true;
+    public bool publishNetworkData = false;
     public string networkFileLocation = "network_data";
 
     float moveDirection = 0;
@@ -54,7 +54,10 @@ public class PlayerController : NetworkBehaviour
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
 
-        if (mainCamera && IsLocalPlayer) {
+        if (mainCamera && !IsLocalPlayer && !IsOwner)
+        {
+            mainCamera.enabled = false;
+        } else {
             mainCamera.gameObject.tag = "MainCamera";
         }
 
@@ -68,7 +71,8 @@ public class PlayerController : NetworkBehaviour
         {
             networkFileLocation += "_SERVER.csv";
         }
-        else {
+        else if (publishNetworkData)
+        {
             networkFileLocation += "_OTHER.csv";
         }
     }
@@ -77,7 +81,8 @@ public class PlayerController : NetworkBehaviour
     void Update()
     {
         // Only move player if we own it
-        if (IsOwner) {
+        if (IsOwner)
+        {
 
             byte input = ConstructInputByte();
 
@@ -90,36 +95,32 @@ public class PlayerController : NetworkBehaviour
             // Line format: <timestamp>,<rtt>,<local x>,<local y>
             string networkData = "" + cur_time + "," + rtt + "," + transform.position.x + "," + transform.position.y;
 
-            // if (!File.Exists(networkFileLocation))
-            // {
-            //     // Create a file to write to.
-            //     using (StreamWriter sw = File.CreateText(networkFileLocation))
-            //     {
-            //         sw.WriteLine(networkData);
-            //     }
-            // }
-            // else
-            // {
-            //     // This text is always added, making the file longer over time
-            //     // if it is not deleted.
-            //     using (StreamWriter sw = File.AppendText(networkFileLocation))
-            //     {
-            //         sw.WriteLine(networkData);
-            //     }
-            // }
-        }
-
-
-
-        // Camera follow TODO FIX THIS
-        if (IsOwner && mainCamera)
-        {
-            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, -10.0f);
+            if (publishNetworkData)
+            {
+                if (!File.Exists(networkFileLocation))
+                {
+                    // Create a file to write to.
+                    using (StreamWriter sw = File.CreateText(networkFileLocation))
+                    {
+                        sw.WriteLine(networkData);
+                    }
+                }
+                else
+                {
+                    // This text is always added, making the file longer over time
+                    // if it is not deleted.
+                    using (StreamWriter sw = File.AppendText(networkFileLocation))
+                    {
+                        sw.WriteLine(networkData);
+                    }
+                }
+            }
         }
 
     }
 
-    private byte ConstructInputByte() {
+    private byte ConstructInputByte()
+    {
         // Construct the input byte to be sent to the server (or used by the server)
         // This byte is of the format (_ is unused):
         // BIT      0   1   2   3   4       5   6   7
@@ -128,11 +129,11 @@ public class PlayerController : NetworkBehaviour
         // Call this function in Update() only!
 
         byte input = 0;
-        if (Input.GetKeyDown(KeyCode.W))        input |= 0b1;
-        if (Input.GetKey(KeyCode.A))            input |= 0b10;
-        if (Input.GetKeyDown(KeyCode.S))        input |= 0b100;
-        if (Input.GetKey(KeyCode.D))            input |= 0b1000;
-        if (Input.GetKeyDown(KeyCode.Space))    input |= 0b10000;
+        if (Input.GetKeyDown(KeyCode.W)) input |= 0b1;
+        if (Input.GetKey(KeyCode.A)) input |= 0b10;
+        if (Input.GetKeyDown(KeyCode.S)) input |= 0b100;
+        if (Input.GetKey(KeyCode.D)) input |= 0b1000;
+        if (Input.GetKeyDown(KeyCode.Space)) input |= 0b10000;
 
         return input;
     }
@@ -145,14 +146,15 @@ public class PlayerController : NetworkBehaviour
     {
         // Extract input data
         moveDirection = 0f;
-        if ((input & 0b10   )!= 0) moveDirection += -1f; // A pressed, move left
-        if ((input & 0b1000 )!= 0) moveDirection +=  1f; // D pressed, move right
-        bool tryJump = ((input & 0b1 )!= 0);
-        bool tryShootLightBall = ((input & 0b10000 )!= 0);
+        if ((input & 0b10) != 0) moveDirection += -1f; // A pressed, move left
+        if ((input & 0b1000) != 0) moveDirection += 1f; // D pressed, move right
+        bool tryJump = ((input & 0b1) != 0);
+        bool tryShootLightBall = ((input & 0b10000) != 0);
 
         // Horizontal movement
         // If landing, no movement
-        if (playerGroundStatus.Value == PlayerGroundStatus.LANDING) {
+        if (playerGroundStatus.Value == PlayerGroundStatus.LANDING)
+        {
             moveDirection = 0f;
         }
 
@@ -201,24 +203,26 @@ public class PlayerController : NetworkBehaviour
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
 
         // Shoot light ball
-        if (tryShootLightBall && timeUntilLightBall <= 0f) {
+        if (tryShootLightBall && timeUntilLightBall <= 0f)
+        {
             // Get velocity
             Vector2 vel;
             Vector3 spawn;
-            switch(playerDirectionStatus.Value) {
+            switch (playerDirectionStatus.Value)
+            {
                 case PlayerDirectionStatus.LEFT:
                     vel = Vector2.left;
                     spawn = new Vector3(-0.6f, 0, -0.01f);
-                break;
+                    break;
                 case PlayerDirectionStatus.RIGHT:
                     vel = Vector2.right;
                     spawn = new Vector3(0.6f, 0, -0.01f);
-                break;
+                    break;
                 case PlayerDirectionStatus.IDLE:
                 default:
                     vel = Vector2.up;
                     spawn = new Vector3(0, 0.6f, -0.01f);
-                break;
+                    break;
             }
             vel *= lightBallSpeed;
             spawn += transform.position;
@@ -229,7 +233,9 @@ public class PlayerController : NetworkBehaviour
 
             // Reset cooldown
             timeUntilLightBall = lightBallCooldown;
-        } else if (timeUntilLightBall > 0f) {
+        }
+        else if (timeUntilLightBall > 0f)
+        {
             timeUntilLightBall -= Time.deltaTime;
         }
 
@@ -243,7 +249,8 @@ public class PlayerController : NetworkBehaviour
         // Check if player is grounded
         Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheckPos, colliderRadius);
         //Check if any of the overlapping colliders are not player collider, if so, set isGrounded to true
-        if (isAirbornCounter > 20) {
+        if (isAirbornCounter > 20)
+        {
             isGrounded = false;
         }
         isAirbornCounter++;
