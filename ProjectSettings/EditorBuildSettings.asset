@@ -6,17 +6,26 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
-  - enabled: 0
-    path: 
-    guid: 9d4462aae93283e4ba833ad531f34e3a
-  - enabled: 1
     path: Assets/Scenes/DarknessTestingScene.unity
     guid: 3fc8acdd13e6c734bafef6554d6fdbcd
   - enabled: 1
-    path: Assets/Prefabs/Test.unity
-    guid: 4f43f09e9aab16349b1010999a739ee4
+    path: Assets/Scenes/Scene1.unity
+    guid: 7c00134eee3f35a48819baffe5bfc81b
+  - enabled: 1
+    path: Assets/Scenes/LoadingScreen.unity
+    guid: 54b65e639164e3d4a82ed32dab7d98be
+  - enabled: 1
+    path: Assets/Scenes/LoseScreen.unity
+    guid: 77f8bee115bb0d449b6052133651f898
+  - enabled: 1
+    path: Assets/Scenes/WinScreen.unity
+    guid: e0a3c6d042f75e445b9e79beb897ca0e
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: 8ad8b194137f4204eb2cb2ea0829d4a8
+  - enabled: 1
+    path: Assets/Scenes/HostMenu.unity
+    guid: e793564d7e6c3ad4f843fa17bb4869cd
   m_configObjects:
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 0831644be9d3a874582cc82494652b2f, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: d18ab148e1e51d84da6ef6b39e3725b6, type: 2}

@@ -14,8 +14,8 @@ public class PlayerController : NetworkBehaviour {
 
     // Move player in 2D space
     public float maxSpeed = 3.4f;
-    public float jumpHeight = 6.5f;
-    public float gravityScale = 1.5f;
+    public float jumpHeight = 80.0f;
+    public float gravityScale = 0.6f;
     public float maxLandingTime = 1.0f;
     public Camera mainCamera;
 
@@ -48,10 +48,10 @@ public class PlayerController : NetworkBehaviour {
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
 
-        if (mainCamera)
-        {
-            cameraPos = mainCamera.transform.position;
+        if (mainCamera && IsLocalPlayer) {
+            mainCamera.gameObject.tag = "MainCamera";
         }
+
     }
 
     // Update is called once per frame
@@ -66,14 +66,6 @@ public class PlayerController : NetworkBehaviour {
             //if (input != 0) {
                 MovePlayerServerRpc(input);
             //}
-        }
-
-        
-
-        // Camera follow TODO FIX THIS
-        if (IsOwner && mainCamera)
-        {
-            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
         }
 
     }

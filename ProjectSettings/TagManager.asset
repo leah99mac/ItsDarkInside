@@ -3,7 +3,12 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Platform
+  - Yellow
+  - Blue
+  - Green
+  - Red
   layers:
   - Default
   - TransparentFX
@@ -11,7 +16,7 @@ TagManager:
   - Background
   - Water
   - UI
-  - Main
+  - Blocks
   - 
   - 
   - 
