@@ -39,7 +39,6 @@ public class PlayerController : NetworkBehaviour
     float landingCounter = 0;
     bool isGrounded = false;
     float timeUntilLightBall = 0f;
-    Vector3 cameraPos;
     Rigidbody2D r2d;
     CapsuleCollider2D mainCollider;
     Transform t;
@@ -67,6 +66,9 @@ public class PlayerController : NetworkBehaviour
         else if (publishNetworkData && IsHost && !IsLocalPlayer)
         {
             networkFileLocation += "_SERVER.csv";
+        }
+        else {
+            networkFileLocation += "_OTHER.csv";
         }
     }
 
@@ -106,17 +108,14 @@ public class PlayerController : NetworkBehaviour
             }
         }
 
-<<<<<<< HEAD
 
 
         // Camera follow TODO FIX THIS
         if (IsOwner && mainCamera)
         {
-            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
+            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, -10.0f);
         }
 
-=======
->>>>>>> origin/main
     }
 
     private byte ConstructInputByte() {
