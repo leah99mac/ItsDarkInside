@@ -569,8 +569,8 @@ public class NetworkPositionTracker : NetworkBehaviour
             if (networkState.HasPositionY) { adjustedPosition.y = networkState.PositionY; }
             if (networkState.HasPositionZ) { adjustedPosition.z = networkState.PositionZ; }
 
-            if (networkState.HasVelocityX) { adjustedVelocity.x = networkState.VelocityX; }
-            if (networkState.HasVelocityY) { adjustedVelocity.y = networkState.VelocityY; }
+            //if (networkState.HasVelocityX) { adjustedVelocity.x = networkState.VelocityX; }
+            //if (networkState.HasVelocityY) { adjustedVelocity.y = networkState.VelocityY; }
         }
 
         // NOTE: The below conditional checks for applying axial values are required in order to
