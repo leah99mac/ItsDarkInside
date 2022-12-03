@@ -35,6 +35,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 926490842398631030}
+  - {fileID: 580082317432625540}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -71,11 +72,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be24b8231488d404f898a58927dbafaa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 3.4
-  jumpHeight: 6.5
-  gravityScale: 1.5
+  maxSpeed: 3.6
+  jumpHeight: 7
+  gravityScale: 0.7
   maxLandingTime: 0.25
-  mainCamera: {fileID: 0}
+  mainCamera: {fileID: 8678167938251452463}
   playerDirectionStatus:
     m_InternalValue: 0
   playerGroundStatus:
@@ -291,8 +292,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 1287688689
-  m_SortingLayer: 1
+  m_SortingLayerID: 1092249223
+  m_SortingLayer: 4
   m_SortingOrder: 0
   m_Sprite: {fileID: 749655020, guid: 99a8986836f127f47886a118c4991d90, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

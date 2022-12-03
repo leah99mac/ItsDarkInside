@@ -283,8 +283,8 @@ public class DynamicInterpolatorFloat : DynamicInterpolator<float>
 
     protected override float Interpolate(float start, float vel_start, float end, float vel_end, float time, out float vel_out)
     {
-        if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE)
-        {
+
+        if (interpolationType == DynamicInterpolator<float>.InterpolationType.CUBIC_SPLINE) {
             Debug.Log("CUBIC SPLINE");
             // Implementation of cubic spline interpolation
             float a = 2f * start + vel_start - 2f * end + vel_end;
@@ -293,9 +293,7 @@ public class DynamicInterpolatorFloat : DynamicInterpolator<float>
             float d = start;
             vel_out = 3 * a * time * time + 2 * b * time + c;
             return a * time * time * time + b * time * time + c * time + d;
-        }
-        else
-        {
+        } else {
             // Default- Linear interpolation
             Debug.Log("LINEAR");
 

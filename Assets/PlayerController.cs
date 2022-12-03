@@ -17,8 +17,8 @@ public class PlayerController : NetworkBehaviour
 
     // Move player in 2D space
     public float maxSpeed = 3.4f;
-    public float jumpHeight = 6.5f;
-    public float gravityScale = 1.5f;
+    public float jumpHeight = 80.0f;
+    public float gravityScale = 0.6f;
     public float maxLandingTime = 1.0f;
     public Camera mainCamera;
 
@@ -54,10 +54,10 @@ public class PlayerController : NetworkBehaviour
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
 
-        if (mainCamera)
-        {
-            cameraPos = mainCamera.transform.position;
+        if (mainCamera && IsOwner) {
+            mainCamera.gameObject.tag = "MainCamera";
         }
+
 
         if (publishNetworkData && IsOwner && !IsServer)
         {
@@ -67,30 +67,20 @@ public class PlayerController : NetworkBehaviour
         else if (publishNetworkData && IsHost && !IsLocalPlayer)
         {
             networkFileLocation += "_SERVER.csv";
-            File.Delete(networkFileLocation);
-        } else {
-            publishNetworkData = false;
         }
-
     }
 
     // Update is called once per frame
     void Update()
     {
         // Only move player if we own it
-        if (IsOwner)
-        {
+        if (IsOwner) {
 
-            // Get the input byte to send to the server
             byte input = ConstructInputByte();
-            // No input, no message needed?
-            //if (input != 0) {
-            MovePlayerServerRpc(input);
-            //}
-        }
 
-        if (publishNetworkData && networkFileLocation != "")
-        {
+            // No input, no message needed?
+            MovePlayerServerRpc(input);
+
             System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
             double cur_time = (System.DateTime.UtcNow - epochStart).TotalMilliseconds;
             double rtt = NetworkManager.Singleton.LocalTime.Time - NetworkManager.Singleton.ServerTime.Time;
@@ -126,8 +116,7 @@ public class PlayerController : NetworkBehaviour
 
     }
 
-    private byte ConstructInputByte()
-    {
+    private byte ConstructInputByte() {
         // Construct the input byte to be sent to the server (or used by the server)
         // This byte is of the format (_ is unused):
         // BIT      0   1   2   3   4       5   6   7
@@ -136,11 +125,11 @@ public class PlayerController : NetworkBehaviour
         // Call this function in Update() only!
 
         byte input = 0;
-        if (Input.GetKeyDown(KeyCode.W)) input |= 0b1;
-        if (Input.GetKey(KeyCode.A)) input |= 0b10;
-        if (Input.GetKeyDown(KeyCode.S)) input |= 0b100;
-        if (Input.GetKey(KeyCode.D)) input |= 0b1000;
-        if (Input.GetKeyDown(KeyCode.Space)) input |= 0b10000;
+        if (Input.GetKeyDown(KeyCode.W))        input |= 0b1;
+        if (Input.GetKey(KeyCode.A))            input |= 0b10;
+        if (Input.GetKeyDown(KeyCode.S))        input |= 0b100;
+        if (Input.GetKey(KeyCode.D))            input |= 0b1000;
+        if (Input.GetKeyDown(KeyCode.Space))    input |= 0b10000;
 
         return input;
     }
@@ -153,15 +142,14 @@ public class PlayerController : NetworkBehaviour
     {
         // Extract input data
         moveDirection = 0f;
-        if ((input & 0b10) != 0) moveDirection += -1f; // A pressed, move left
-        if ((input & 0b1000) != 0) moveDirection += 1f; // D pressed, move right
-        bool tryJump = ((input & 0b1) != 0);
-        bool tryShootLightBall = ((input & 0b10000) != 0);
+        if ((input & 0b10   )!= 0) moveDirection += -1f; // A pressed, move left
+        if ((input & 0b1000 )!= 0) moveDirection +=  1f; // D pressed, move right
+        bool tryJump = ((input & 0b1 )!= 0);
+        bool tryShootLightBall = ((input & 0b10000 )!= 0);
 
         // Horizontal movement
         // If landing, no movement
-        if (playerGroundStatus.Value == PlayerGroundStatus.LANDING)
-        {
+        if (playerGroundStatus.Value == PlayerGroundStatus.LANDING) {
             moveDirection = 0f;
         }
 
@@ -210,26 +198,24 @@ public class PlayerController : NetworkBehaviour
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
 
         // Shoot light ball
-        if (tryShootLightBall && timeUntilLightBall <= 0f)
-        {
+        if (tryShootLightBall && timeUntilLightBall <= 0f) {
             // Get velocity
             Vector2 vel;
             Vector3 spawn;
-            switch (playerDirectionStatus.Value)
-            {
+            switch(playerDirectionStatus.Value) {
                 case PlayerDirectionStatus.LEFT:
                     vel = Vector2.left;
                     spawn = new Vector3(-0.6f, 0, -0.01f);
-                    break;
+                break;
                 case PlayerDirectionStatus.RIGHT:
                     vel = Vector2.right;
                     spawn = new Vector3(0.6f, 0, -0.01f);
-                    break;
+                break;
                 case PlayerDirectionStatus.IDLE:
                 default:
                     vel = Vector2.up;
                     spawn = new Vector3(0, 0.6f, -0.01f);
-                    break;
+                break;
             }
             vel *= lightBallSpeed;
             spawn += transform.position;
@@ -240,9 +226,7 @@ public class PlayerController : NetworkBehaviour
 
             // Reset cooldown
             timeUntilLightBall = lightBallCooldown;
-        }
-        else if (timeUntilLightBall > 0f)
-        {
+        } else if (timeUntilLightBall > 0f) {
             timeUntilLightBall -= Time.deltaTime;
         }
 
