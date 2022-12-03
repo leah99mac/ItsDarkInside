@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Components;
+using System;
+using System.IO;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CapsuleCollider2D))]
 
-public class PlayerController : NetworkBehaviour {
+public class PlayerController : NetworkBehaviour
+{
 
-    public enum PlayerDirectionStatus {IDLE, RIGHT, LEFT};
-    public enum PlayerGroundStatus {GROUNDED, JUMPING, FALLING, LANDING};
+    public enum PlayerDirectionStatus { IDLE, RIGHT, LEFT };
+    public enum PlayerGroundStatus { GROUNDED, JUMPING, FALLING, LANDING };
 
     // Move player in 2D space
     public float maxSpeed = 3.4f;
@@ -28,12 +31,15 @@ public class PlayerController : NetworkBehaviour {
     public float lightBallCooldown = 1.0f;
     public float lightBallSpeed = 3.0f;
 
+    // Debug network data
+    public bool publishNetworkData = true;
+    public string networkFileLocation = "network_data";
 
     float moveDirection = 0;
     float landingCounter = 0;
     bool isGrounded = false;
+    int isAirbornCounter = 0;
     float timeUntilLightBall = 0f;
-    Vector3 cameraPos;
     Rigidbody2D r2d;
     CapsuleCollider2D mainCollider;
     Transform t;
@@ -52,6 +58,19 @@ public class PlayerController : NetworkBehaviour {
             mainCamera.gameObject.tag = "MainCamera";
         }
 
+
+        if (publishNetworkData && IsOwner && !IsServer)
+        {
+            networkFileLocation += "_CLIENT.csv";
+            File.Delete(networkFileLocation);
+        }
+        else if (publishNetworkData && IsHost && !IsLocalPlayer)
+        {
+            networkFileLocation += "_SERVER.csv";
+        }
+        else {
+            networkFileLocation += "_OTHER.csv";
+        }
     }
 
     // Update is called once per frame
@@ -60,12 +79,42 @@ public class PlayerController : NetworkBehaviour {
         // Only move player if we own it
         if (IsOwner) {
 
-            // Get the input byte to send to the server
             byte input = ConstructInputByte();
+
             // No input, no message needed?
-            //if (input != 0) {
-                MovePlayerServerRpc(input);
-            //}
+            MovePlayerServerRpc(input);
+
+            System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+            double cur_time = (System.DateTime.UtcNow - epochStart).TotalMilliseconds;
+            double rtt = NetworkManager.Singleton.LocalTime.Time - NetworkManager.Singleton.ServerTime.Time;
+            // Line format: <timestamp>,<rtt>,<local x>,<local y>
+            string networkData = "" + cur_time + "," + rtt + "," + transform.position.x + "," + transform.position.y;
+
+            // if (!File.Exists(networkFileLocation))
+            // {
+            //     // Create a file to write to.
+            //     using (StreamWriter sw = File.CreateText(networkFileLocation))
+            //     {
+            //         sw.WriteLine(networkData);
+            //     }
+            // }
+            // else
+            // {
+            //     // This text is always added, making the file longer over time
+            //     // if it is not deleted.
+            //     using (StreamWriter sw = File.AppendText(networkFileLocation))
+            //     {
+            //         sw.WriteLine(networkData);
+            //     }
+            // }
+        }
+
+
+
+        // Camera follow TODO FIX THIS
+        if (IsOwner && mainCamera)
+        {
+            mainCamera.transform.position = new Vector3(t.position.x, t.position.y, -10.0f);
         }
 
     }
@@ -117,7 +166,8 @@ public class PlayerController : NetworkBehaviour {
         }
 
         // Player state transitions
-        switch(playerGroundStatus.Value) {
+        switch (playerGroundStatus.Value)
+        {
             case PlayerGroundStatus.GROUNDED:
                 // Grounded -> Jumping
                 if (startJump)
@@ -125,29 +175,29 @@ public class PlayerController : NetworkBehaviour {
                 // Grounded -> Falling
                 else if (!isGrounded && r2d.velocity.y < -0.05)
                     playerGroundStatus.Value = PlayerGroundStatus.FALLING;
-            break;
+                break;
             case PlayerGroundStatus.JUMPING:
                 // Jumping -> Falling
                 if (!isGrounded && r2d.velocity.y < -0.05)
                     playerGroundStatus.Value = PlayerGroundStatus.FALLING;
-            break;
+                break;
             case PlayerGroundStatus.FALLING:
                 // Falling -> Landing
                 if (isGrounded)
                     playerGroundStatus.Value = PlayerGroundStatus.LANDING;
-            break;
+                break;
             case PlayerGroundStatus.LANDING:
                 // Landing -> Grounded
                 if (landingCounter <= 0)
                     playerGroundStatus.Value = PlayerGroundStatus.GROUNDED;
                 landingCounter -= Time.deltaTime;
-            break;
+                break;
         }
 
         // Set player direction
-        playerDirectionStatus.Value = (playerGroundStatus.Value == PlayerGroundStatus.LANDING)? playerDirectionStatus.Value : // If player is landing, maintain current direction
-                                (moveDirection < 0)? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
-                                (moveDirection > 0)? PlayerDirectionStatus.RIGHT : 
+        playerDirectionStatus.Value = (playerGroundStatus.Value == PlayerGroundStatus.LANDING) ? playerDirectionStatus.Value : // If player is landing, maintain current direction
+                                (moveDirection < 0) ? PlayerDirectionStatus.LEFT : // Not landing, direction depends on moving
+                                (moveDirection > 0) ? PlayerDirectionStatus.RIGHT :
                                 PlayerDirectionStatus.IDLE; // Not moving, idle
 
         // Shoot light ball
@@ -193,7 +243,10 @@ public class PlayerController : NetworkBehaviour {
         // Check if player is grounded
         Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheckPos, colliderRadius);
         //Check if any of the overlapping colliders are not player collider, if so, set isGrounded to true
-        isGrounded = false;
+        if (isAirbornCounter > 20) {
+            isGrounded = false;
+        }
+        isAirbornCounter++;
         if (colliders.Length > 0)
         {
             for (int i = 0; i < colliders.Length; i++)
@@ -201,6 +254,7 @@ public class PlayerController : NetworkBehaviour {
                 if (colliders[i] != mainCollider && !colliders[i].isTrigger)
                 {
                     isGrounded = true;
+                    isAirbornCounter = 0;
                     break;
                 }
             }
