@@ -38,6 +38,7 @@ public class PlayerController : NetworkBehaviour
     float moveDirection = 0;
     float landingCounter = 0;
     bool isGrounded = false;
+    int isAirbornCounter = 0;
     float timeUntilLightBall = 0f;
     Rigidbody2D r2d;
     CapsuleCollider2D mainCollider;
@@ -89,23 +90,23 @@ public class PlayerController : NetworkBehaviour
             // Line format: <timestamp>,<rtt>,<local x>,<local y>
             string networkData = "" + cur_time + "," + rtt + "," + transform.position.x + "," + transform.position.y;
 
-            if (!File.Exists(networkFileLocation))
-            {
-                // Create a file to write to.
-                using (StreamWriter sw = File.CreateText(networkFileLocation))
-                {
-                    sw.WriteLine(networkData);
-                }
-            }
-            else
-            {
-                // This text is always added, making the file longer over time
-                // if it is not deleted.
-                using (StreamWriter sw = File.AppendText(networkFileLocation))
-                {
-                    sw.WriteLine(networkData);
-                }
-            }
+            // if (!File.Exists(networkFileLocation))
+            // {
+            //     // Create a file to write to.
+            //     using (StreamWriter sw = File.CreateText(networkFileLocation))
+            //     {
+            //         sw.WriteLine(networkData);
+            //     }
+            // }
+            // else
+            // {
+            //     // This text is always added, making the file longer over time
+            //     // if it is not deleted.
+            //     using (StreamWriter sw = File.AppendText(networkFileLocation))
+            //     {
+            //         sw.WriteLine(networkData);
+            //     }
+            // }
         }
 
 
@@ -242,7 +243,10 @@ public class PlayerController : NetworkBehaviour
         // Check if player is grounded
         Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheckPos, colliderRadius);
         //Check if any of the overlapping colliders are not player collider, if so, set isGrounded to true
-        isGrounded = false;
+        if (isAirbornCounter > 20) {
+            isGrounded = false;
+        }
+        isAirbornCounter++;
         if (colliders.Length > 0)
         {
             for (int i = 0; i < colliders.Length; i++)
@@ -250,6 +254,7 @@ public class PlayerController : NetworkBehaviour
                 if (colliders[i] != mainCollider && !colliders[i].isTrigger)
                 {
                     isGrounded = true;
+                    isAirbornCounter = 0;
                     break;
                 }
             }
