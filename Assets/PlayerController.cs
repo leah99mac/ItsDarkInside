@@ -54,7 +54,7 @@ public class PlayerController : NetworkBehaviour
         r2d.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         r2d.gravityScale = gravityScale;
 
-        if (mainCamera && IsOwner) {
+        if (mainCamera && IsLocalPlayer) {
             mainCamera.gameObject.tag = "MainCamera";
         }
 
@@ -106,6 +106,7 @@ public class PlayerController : NetworkBehaviour
             }
         }
 
+<<<<<<< HEAD
 
 
         // Camera follow TODO FIX THIS
@@ -114,6 +115,8 @@ public class PlayerController : NetworkBehaviour
             mainCamera.transform.position = new Vector3(t.position.x, t.position.y, cameraPos.z);
         }
 
+=======
+>>>>>>> origin/main
     }
 
     private byte ConstructInputByte() {
