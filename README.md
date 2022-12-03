@@ -1,2 +1,0 @@
-# ItsDarkInside
-Mobile App Game

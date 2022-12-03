@@ -2,8 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
-public class MonsterBehavior : MonoBehaviour
+public class MonsterBehavior : NetworkBehaviour
 {
     [HideInInspector]
     public bool patrol; //should go forward
@@ -33,6 +34,7 @@ public class MonsterBehavior : MonoBehaviour
 
     private void FixedUpdate()
     {
+
         if (patrol)
         {
             turn = !Physics2D.OverlapCircle(groundCheck.position, 0.1f, groundLayer); //if monster reached end of ground
