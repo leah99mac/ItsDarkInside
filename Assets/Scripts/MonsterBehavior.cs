@@ -6,6 +6,10 @@ using Unity.Netcode;
 
 public class MonsterBehavior : NetworkBehaviour
 {
+    [Header("UI")]
+    [SerializeField] private GameObject game1 = null;
+    [SerializeField] private GameObject gameOver = null;
+
     [HideInInspector]
     public bool patrol; //should go forward
     [HideInInspector]
@@ -62,7 +66,8 @@ public class MonsterBehavior : NetworkBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            SceneManager.LoadScene("LoseScreen");
+            game1.SetActive(false);
+            gameOver.SetActive(true);
         }
     }
 }

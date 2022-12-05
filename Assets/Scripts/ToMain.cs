@@ -3,20 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
 public class ToMain : MonoBehaviour
 {
+    [Header("UI")]
+    [SerializeField] private GameObject networkUI = null;
+    [SerializeField] private GameObject mainMenu = null;
+
     float timer = 0.0f;
     float total = 5.0f;
-
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-
-    }
-
 
     // Update is called once per frame
     void Update()
@@ -27,7 +21,8 @@ public class ToMain : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("MainMenu");
+            networkUI.SetActive(true);
+            mainMenu.SetActive(true);
         }
     }
 }

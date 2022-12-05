@@ -8,6 +8,10 @@ using TMPro;
 
 public class NetworkUI : MonoBehaviour
 {
+    [Header("UI")]
+    [SerializeField] private GameObject networkUI = null;
+    [SerializeField] private GameObject mainMenu = null;
+    [SerializeField] private GameObject game1 = null;
 
     [SerializeField] private Button hostButton;
     [SerializeField] private Button clientButton;
@@ -33,6 +37,9 @@ public class NetworkUI : MonoBehaviour
 
         hostButton.onClick.AddListener(() => {
             NetworkManager.Singleton.StartHost();
+            networkUI.SetActive(false);
+            mainMenu.SetActive(false);
+            game1.SetActive(true);
             SetHostClientSelectionActive(false);
         });
 
@@ -40,6 +47,9 @@ public class NetworkUI : MonoBehaviour
             transport.ConnectionData.Address = ipField?.text;
             Debug.Log("Connecting to " + transport.ConnectionData.Address);
             NetworkManager.Singleton.StartClient();
+            networkUI.SetActive(false);
+            mainMenu.SetActive(false);
+            game1.SetActive(true);
             SetHostClientSelectionActive(false);
 
             SetToggleInterpolationActive(true);
