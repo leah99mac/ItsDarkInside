@@ -2,12 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Unity.Netcode;
 
 public class ToMain : MonoBehaviour
 {
-    [Header("UI")]
-    [SerializeField] private GameObject networkUI = null;
-    [SerializeField] private GameObject mainMenu = null;
 
     float timer = 0.0f;
     float total = 5.0f;
@@ -21,8 +19,8 @@ public class ToMain : MonoBehaviour
         }
         else
         {
-            networkUI.SetActive(true);
-            mainMenu.SetActive(true);
+            NetworkManager.Singleton.Shutdown();
+            SceneManager.LoadScene("Scene1");
         }
     }
 }

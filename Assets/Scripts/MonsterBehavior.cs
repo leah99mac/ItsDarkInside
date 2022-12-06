@@ -6,11 +6,11 @@ using Unity.Netcode;
 
 public class MonsterBehavior : NetworkBehaviour
 {
-    [Header("UI")]
-    [SerializeField] private GameObject game1 = null;
     [SerializeField] private GameObject gameOver = null;
+    [SerializeField] private GameObject game1 = null;
+    [SerializeField] private GameObject loading = null;
 
-    [HideInInspector]
+[HideInInspector]
     public bool patrol; //should go forward
     [HideInInspector]
     public bool turn; //should turn
@@ -67,6 +67,7 @@ public class MonsterBehavior : NetworkBehaviour
         if (collision.gameObject.CompareTag("Player"))
         {
             game1.SetActive(false);
+            loading.SetActive(false);
             gameOver.SetActive(true);
         }
     }

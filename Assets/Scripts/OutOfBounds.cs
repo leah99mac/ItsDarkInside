@@ -5,23 +5,17 @@ using UnityEngine.SceneManagement;
 
 public class OutOfBounds : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    [SerializeField] private GameObject gameOver = null;
+    [SerializeField] private GameObject game1 = null;
+    [SerializeField] private GameObject loading = null;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            SceneManager.LoadScene("LoseScreen");
+            game1.SetActive(false);
+            loading.SetActive(false);
+            gameOver.SetActive(true);
         }
     }
 }

@@ -9,7 +9,6 @@ using TMPro;
 public class NetworkUI : MonoBehaviour
 {
     [Header("UI")]
-    [SerializeField] private GameObject networkUI = null;
     [SerializeField] private GameObject mainMenu = null;
     [SerializeField] private GameObject game1 = null;
 
@@ -37,7 +36,6 @@ public class NetworkUI : MonoBehaviour
 
         hostButton.onClick.AddListener(() => {
             NetworkManager.Singleton.StartHost();
-            networkUI.SetActive(false);
             mainMenu.SetActive(false);
             game1.SetActive(true);
             SetHostClientSelectionActive(false);
@@ -47,11 +45,9 @@ public class NetworkUI : MonoBehaviour
             transport.ConnectionData.Address = ipField?.text;
             Debug.Log("Connecting to " + transport.ConnectionData.Address);
             NetworkManager.Singleton.StartClient();
-            networkUI.SetActive(false);
             mainMenu.SetActive(false);
             game1.SetActive(true);
             SetHostClientSelectionActive(false);
-
             SetToggleInterpolationActive(true);
         });
 
@@ -92,10 +88,8 @@ public class NetworkUI : MonoBehaviour
     }
 
     private void HandleClientDisconnect(ulong clientId) {
-        if (clientId == NetworkManager.Singleton.LocalClientId) {
-            SetHostClientSelectionActive(true);
-            SetToggleInterpolationActive(false);
-        }
+        ResetButtons();
+        gameObject.AddComponent<ToMain>();
     }
 
     private void SetHostClientSelectionActive(bool active) {
@@ -107,5 +101,11 @@ public class NetworkUI : MonoBehaviour
     private void SetToggleInterpolationActive(bool active) {
         toggleInterpolationButton.gameObject.SetActive(active);
         toggleInterpolationTypeButton.gameObject.SetActive(active);
+    }
+
+    public void ResetButtons()
+    {
+        SetHostClientSelectionActive(true);
+        SetToggleInterpolationActive(false);
     }
 }

@@ -16,29 +16,20 @@ public class Portal : NetworkBehaviour
 
     private void OnCollisionEnter2D (Collision2D collision)
     {
-        if (IsOwner)
+        count++;
+        if (collision.gameObject.GetComponent<PlayerController>().IsOwner)
         {
             if (collision.gameObject.CompareTag("Player"))
             {
-                count++;
-                game1.SetActive(false);
                 loading.SetActive(true);
+                Destroy(collision.gameObject);
             }
-        } else
+        }
+        if (count == 2)
         {
-            if (collision.gameObject.CompareTag("Player"))
-            {
-                count++;
-                if (count == 2)
-                {
-                    gameWon.SetActive(true);
-                }
-                else
-                {
-                    game1.SetActive(false);
-                    loading.SetActive(true);
-                }
-            }
+            loading.SetActive(false);
+            game1.SetActive(false);
+            gameWon.SetActive(true);
         }
     }
 }

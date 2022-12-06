@@ -762,6 +762,7 @@ public class NetworkPositionTracker : NetworkBehaviour
         // that can be invoked when ownership changes.
         if (CanCommitToTransform)
         {
+            rb = GetComponent<Rigidbody2D>();
             var currentPosition = InLocalSpace ? transform.localPosition : transform.position;
             var currentVelocity = rb.velocity;
             // Teleport to current position
