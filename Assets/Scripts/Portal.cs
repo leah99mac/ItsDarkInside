@@ -8,28 +8,32 @@ using System.IO;
 
 public class Portal : NetworkBehaviour
 {
-    [SerializeField] private GameObject game1 = null;
-    [SerializeField] private GameObject gameWon = null;
-    [SerializeField] private GameObject loading = null;
+    private GameStatusHandler gameStatusHandler;
+    private void Start() {
+        gameStatusHandler = (GameStatusHandler)FindObjectOfType(typeof(GameStatusHandler));
+    }
 
     int count = 0;
 
     private void OnCollisionEnter2D (Collision2D collision)
     {
-        count++;
-        if (collision.gameObject.GetComponent<PlayerController>().IsOwner)
-        {
-            if (collision.gameObject.CompareTag("Player"))
+        // Only matters if object is player
+        if (collision.gameObject.CompareTag("Player")) {
+            if (NetworkManager.Singleton.IsHost)
             {
-                loading.SetActive(true);
+                count++;
+                if (count == 2) 
+                {
+                    // Both ghosts have entered portal, game is won
+                    gameStatusHandler.GameWonClientRpc();
+                } else {
+                    // One ghost has entered portal, load on that instance of game
+                    gameStatusHandler.GameLoadingClientRpc(collision.gameObject.GetComponent<PlayerController>().clientId.Value);
+                }
+
+                // Destroy ghost that entered portal
                 Destroy(collision.gameObject);
             }
-        }
-        if (count == 2)
-        {
-            loading.SetActive(false);
-            game1.SetActive(false);
-            gameWon.SetActive(true);
         }
     }
 }

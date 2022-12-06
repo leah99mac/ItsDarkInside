@@ -6,9 +6,7 @@ using Unity.Netcode;
 
 public class MonsterBehavior : NetworkBehaviour
 {
-    [SerializeField] private GameObject gameOver = null;
-    [SerializeField] private GameObject game1 = null;
-    [SerializeField] private GameObject loading = null;
+    private GameStatusHandler gameStatusHandler;
 
 [HideInInspector]
     public bool patrol; //should go forward
@@ -25,6 +23,7 @@ public class MonsterBehavior : NetworkBehaviour
     void Start()
     {
         patrol = true;   
+        gameStatusHandler = (GameStatusHandler)FindObjectOfType(typeof(GameStatusHandler));
     }
 
     // Update is called once per frame
@@ -66,9 +65,7 @@ public class MonsterBehavior : NetworkBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            game1.SetActive(false);
-            loading.SetActive(false);
-            gameOver.SetActive(true);
+            gameStatusHandler.GameOverClientRpc();
         }
     }
 }

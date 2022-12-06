@@ -10,6 +10,12 @@ public class ToMain : MonoBehaviour
     float timer = 0.0f;
     float total = 5.0f;
 
+    private GameStatusHandler gameStatusHandler;
+
+    void Start() {
+        gameStatusHandler = (GameStatusHandler)FindObjectOfType(typeof(GameStatusHandler));
+    }
+
     // Update is called once per frame
     void Update()
     {
@@ -19,8 +25,7 @@ public class ToMain : MonoBehaviour
         }
         else
         {
-            NetworkManager.Singleton.Shutdown();
-            SceneManager.LoadScene("Scene1");
+            gameStatusHandler.Reset();
         }
     }
 }

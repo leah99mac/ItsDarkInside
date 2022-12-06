@@ -77,6 +77,8 @@ MonoBehaviour:
   gravityScale: 0.7
   maxLandingTime: 0.25
   mainCamera: {fileID: 7148047772214245555}
+  clientId:
+    m_InternalValue: 18446744073709551615
   playerDirectionStatus:
     m_InternalValue: 0
   playerGroundStatus:
@@ -84,7 +86,7 @@ MonoBehaviour:
   lightBall: {fileID: 8867402015553256802, guid: fbf4215f4be2ae1438ccc0e3dc71b987, type: 3}
   lightBallCooldown: 1
   lightBallSpeed: 6
-  publishNetworkData: 1
+  publishNetworkData: 0
   networkFileLocation: network_data
 --- !u!70 &1518233964483852193
 CapsuleCollider2D:
