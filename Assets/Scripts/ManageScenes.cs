@@ -5,6 +5,7 @@ using UnityEngine;
 public class ManageScenes : MonoBehaviour
 {
     [Header("UI")]
+    //[SerializeField] private GameObject networkUI = null;
     [SerializeField] private GameObject mainMenu = null;
     [SerializeField] private GameObject game1 = null;
     [SerializeField] private GameObject gameOver = null;
@@ -24,6 +25,5 @@ public class ManageScenes : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
     }
 }
