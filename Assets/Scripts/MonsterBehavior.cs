@@ -6,7 +6,9 @@ using Unity.Netcode;
 
 public class MonsterBehavior : NetworkBehaviour
 {
-    [HideInInspector]
+    private GameStatusHandler gameStatusHandler;
+
+[HideInInspector]
     public bool patrol; //should go forward
     [HideInInspector]
     public bool turn; //should turn
@@ -21,6 +23,7 @@ public class MonsterBehavior : NetworkBehaviour
     void Start()
     {
         patrol = true;   
+        gameStatusHandler = (GameStatusHandler)FindObjectOfType(typeof(GameStatusHandler));
     }
 
     // Update is called once per frame
@@ -62,7 +65,7 @@ public class MonsterBehavior : NetworkBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            SceneManager.LoadScene("LoseScreen");
+            gameStatusHandler.GameOverClientRpc();
         }
     }
 }

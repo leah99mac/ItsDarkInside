@@ -22,6 +22,9 @@ public class PlayerController : NetworkBehaviour
     public float maxLandingTime = 1.0f;
     public Camera mainCamera;
 
+    // Client ID of owner
+    public NetworkVariable<ulong> clientId = new NetworkVariable<ulong>(ulong.MaxValue, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+
     // Player status output
     public NetworkVariable<PlayerDirectionStatus> playerDirectionStatus = new NetworkVariable<PlayerDirectionStatus>(PlayerDirectionStatus.IDLE, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     public NetworkVariable<PlayerGroundStatus> playerGroundStatus = new NetworkVariable<PlayerGroundStatus>(PlayerGroundStatus.GROUNDED, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -74,6 +77,12 @@ public class PlayerController : NetworkBehaviour
         else if (publishNetworkData)
         {
             networkFileLocation += "_OTHER.csv";
+        }
+    }
+
+    public override void OnNetworkSpawn() {
+        if (IsOwner) {
+            clientId.Value = NetworkManager.LocalClientId;
         }
     }
 

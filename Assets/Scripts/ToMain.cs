@@ -2,21 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using Unity.Netcode;
 
 public class ToMain : MonoBehaviour
 {
+
     float timer = 0.0f;
     float total = 5.0f;
 
+    private GameStatusHandler gameStatusHandler;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-
+    void Start() {
+        gameStatusHandler = (GameStatusHandler)FindObjectOfType(typeof(GameStatusHandler));
     }
-
 
     // Update is called once per frame
     void Update()
@@ -27,7 +25,7 @@ public class ToMain : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("MainMenu");
+            gameStatusHandler.Reset();
         }
     }
 }
